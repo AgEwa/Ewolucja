@@ -1,5 +1,10 @@
 import random
 
+
+def random_genome(length):
+    return [generate_hex() for _ in range(length)]
+
+
 def generate_hex():
     """
         Generates a random 8-digit hexadecimal number.
@@ -8,6 +13,7 @@ def generate_hex():
             str: An 8-char string representing a hexadecimal number.
         """
     return '{:08x}'.format(random.randint(0, 0xFFFFFFFF))
+
 
 def bin_to_signed_int(binary):
     int_value = int(binary, 2)

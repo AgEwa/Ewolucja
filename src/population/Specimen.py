@@ -1,11 +1,28 @@
+import config
 
-from src.utils.NumbersHelpers import generate_hex
-from NeuralNetwork import NeuralNetwork
+from src.types.Direction import Direction
+from src.population.NeuralNetwork import NeuralNetwork
+
+
 class Specimen:
-    def __init__(self, gene_num, birth_loc, ):
-        self.genome = [generate_hex() for _ in range(gene_num)]  # list of genes (8 digit hex number)
-        self.brain = NeuralNetwork(self.genome)
+    def __init__(self, index, loc, genome):
+        self.alive = True
+        self.index = index
+        self.location = loc
+        self.birth_location = loc
         self.age = 0
-        self.location = birth_loc
-        self.responsiveness = 1
-        self.last_movement = None
+        self.genome = genome
+        self.brain = NeuralNetwork(genome)
+        self.responsiveness = 0.5
+        self.oscPeriod = 34
+        self.longProbeDist = config.LONG_PROBE_DISTANCE
+        self.last_movement_direction = Direction.random()
+        self.challengeBits = False
+
+        return
+
+    def __str__(self):
+        return f'{self.location} {self.genome}'
+
+    def __repr__(self):
+        return f'{self.location} {self.genome}'
