@@ -2,8 +2,8 @@ import numpy as np
 
 import config
 from src.population.Specimen import Specimen
-from src.utils import random_genome
 from src.world.Grid import Grid
+from utils.utils import random_genome
 
 
 def main():

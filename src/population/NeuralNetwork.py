@@ -3,7 +3,7 @@ import config
 from src.population.Neuron import Neuron
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType, ActionType, NeuronType
-from src.utils import bin_to_signed_int
+from utils.utils import bin_to_signed_int
 
 
 class NeuralNetwork:
@@ -30,7 +30,7 @@ class NeuralNetwork:
             # add neurons to NN
             if source_id not in self.neurons.get(source_type):
                 if source_type == NeuronType.SENSOR:
-                    self.neurons.get(source_type)[source_id] = Sensor(SensorType(source_id))
+                    self.neurons.get(source_type)[source_id] = Sensor(SensorType(source_id), self)
                 else:
                     self.neurons.get(source_type)[source_id] = Neuron(source_type)
             elif target_id not in self.neurons.get(target_type):

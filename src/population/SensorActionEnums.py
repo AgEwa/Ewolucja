@@ -17,9 +17,9 @@ class SensorType(Enum):
     BOUNDARY_DIST = 3  # I distance to nearest edge of world
     BOUNDARY_DIST_Y = 4  # I Y distance to nearest edge of world
     GENETIC_SIM_FWD = 5  # I genetic similarity to forward neighbour
-    LAST_MOVE_DIR_X = 6  # I +- amount of X movement in last movement
-    LAST_MOVE_DIR_Y = 7  # I +- amount of Y movement in last movement
-    LONGPROBE_POP_FWD = 8  # W long look for population forward
+    LAST_MOVE_DIST_X = 6  # I +- amount of X movement in last movement
+    LAST_MOVE_DIST_Y = 7  # I +- amount of Y movement in last movement
+    LONGPROBE_POP_FWD = 8  # W long look for population forward (till end off the world?)
     LONGPROBE_BAR_FWD = 9  # W long look for barriers forward
     POPULATION = 10  # W population density in neighborhood
     POPULATION_FWD = 11  # W population density in the forward-reverse axis
