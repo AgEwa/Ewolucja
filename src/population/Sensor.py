@@ -1,5 +1,6 @@
 import random
 
+import config
 from src.population.Neuron import Neuron
 from src.population.SensorActionEnums import NeuronType, SensorType
 from src.types.Compass import Compass
@@ -12,7 +13,7 @@ class Sensor(Neuron):
         super().__init__(NeuronType.SENSOR)
         self.sensor_type = sensor_type
         self.specimen = specimen
-        self.oscillator = Oscillator(1/specimen.oscPeriod)
+        self.oscillator = Oscillator(1 / specimen.oscPeriod)
 
     def sense(self):
         sensor_value_methods = {
@@ -26,7 +27,10 @@ class Sensor(Neuron):
             SensorType.BOUNDARY_DIST: self._get_boundary_distance,
             SensorType.LAST_MOVE_DIST_X: self._get_last_move_dir_x,
             SensorType.LAST_MOVE_DIST_Y: self._get_last_move_dir_y,
-        }
+            SensorType.POPULATION: self._get_population_density_in_neighbourhood(),
+            SensorType.POPULATION_LR: self._get_population_density_left_right(),
+            SensorType.POPULATION_FWD: self._get_population_density_forward_reverse(),
+            }
 
         method = sensor_value_methods.get(self.sensor_type)
         if method:
@@ -76,6 +80,71 @@ class Sensor(Neuron):
                 return -self.specimen.last_movement[1]
             case _:
                 return 0
+
+    def _get_population_density_in_neighbourhood(self):
+        pop = 0
+        for x in range(self.specimen.location[1] - config.NEIGHBOURHOOD_RADIUS,
+                       self.specimen.location[1] + config.NEIGHBOURHOOD_RADIUS + 1):
+            for y in range(self.specimen.location[0] - config.NEIGHBOURHOOD_RADIUS,
+                           self.specimen.location[0] + config.NEIGHBOURHOOD_RADIUS + 1):
+                if Map.is_occupied_at([y, x]):
+                    pop += 1
+        return pop / (4 * config.NEIGHBOURHOOD_RADIUS ** 2)
+
+    def _get_population_density_left_right(self):
+        if self.specimen.location[0].dir.value % 2 == 1:
+            if self.specimen.location[0].dir in {Compass.NORTH, Compass.SOUTH}:
+                self._get_simple_pop_dens_in_line("L-R")
+            else:
+                self._get_simple_pop_dens_in_line("U-D")
+        else:
+            if self.specimen.location[0].dir in {Compass.NORTH_WEST, Compass.SOUTH_EAST}:
+                self._get_complex_pop_dens_in_line("L-U")
+            else:
+                self._get_complex_pop_dens_in_line("R-U")
+
+    def _get_population_density_forward_reverse(self):
+        if self.specimen.location[0].dir.value % 2 == 1:
+            if self.specimen.location[0].dir in {Compass.NORTH, Compass.SOUTH}:
+                self._get_simple_pop_dens_in_line("U-D")
+            else:
+                self._get_simple_pop_dens_in_line("L-R")
+        else:
+            if self.specimen.location[0].dir in {Compass.NORTH_WEST, Compass.SOUTH_EAST}:
+                self._get_complex_pop_dens_in_line("R-U")
+            else:
+                self._get_complex_pop_dens_in_line("L-U")
+
+    def _get_simple_pop_dens_in_line(self, direction):
+        pop = 0
+        if direction == "L-R":
+            y = self.specimen.location[0]
+            range_middle = self.specimen.location[1]
+            for x in range(range_middle - config.NEIGHBOURHOOD_RADIUS, range_middle + config.NEIGHBOURHOOD_RADIUS + 1):
+                if Map.is_occupied_at([y, x]):
+                    pop += 1
+
+        else:
+            x = self.specimen.location[1]
+            range_middle = self.specimen.location[0]
+            for y in range(range_middle - config.NEIGHBOURHOOD_RADIUS, range_middle + config.NEIGHBOURHOOD_RADIUS + 1):
+                if Map.is_occupied_at([y, x]):
+                    pop += 1
+
+        return pop / (2 * config.NEIGHBOURHOOD_RADIUS)
+
+    def _get_complex_pop_dens_in_line(self, direction):
+        pop = 0
+        x = self.specimen.location[1]
+        y = self.specimen.location[0]
+        dir_change = 1 if direction == "R-U" else -1
+
+        for i in range(-config.NEIGHBOURHOOD_RADIUS, config.NEIGHBOURHOOD_RADIUS + 1):
+            if Map.is_occupied_at([(y - i)*dir_change, x - i]):
+                pop += 1
+            if Map.is_occupied_at([(y + i)*dir_change, x + i]):
+                pop += 1
+        return pop / (2 * config.NEIGHBOURHOOD_RADIUS)
 
     @staticmethod
     def __distance_between(loc_1, loc_2):
