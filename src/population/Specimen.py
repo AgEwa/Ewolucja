@@ -1,6 +1,6 @@
 import config
 
-from src.types.Direction import Direction
+from src.types import Direction
 from src.population.NeuralNetwork import NeuralNetwork
 
 
