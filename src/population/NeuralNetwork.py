@@ -37,8 +37,7 @@ class NeuralNetwork:
                 self.neurons.get(target_type)[target_id] = Neuron(target_type)
 
             # add connection
-            self.neurons.get(source_type).get(source_id).connections.append(
-                (self.neurons.get(target_type).get(target_id), weight))
+            self.neurons.get(source_type).get(source_id).connections.append((self.neurons.get(target_type).get(target_id), weight))
 
     def run(self):
         # after feeding sensors values from the world
