@@ -8,7 +8,8 @@ from src.utils import bin_to_signed_int
 
 class NeuralNetwork:
     def __init__(self, genome):
-        self.neurons = {NeuronType.SENSOR: {}, NeuronType.NEURON: {}, NeuronType.ACTION: {}}
+        # reminder for Michal: we don't use SensorType and ActionType as keys, 'cause INNER neurons don't have types
+        self.neurons = {NeuronType.SENSOR: {}, NeuronType.INNER: {}, NeuronType.ACTION: {}}
 
         self.__genome_to_neural_network(genome)
 
@@ -19,12 +20,15 @@ class NeuralNetwork:
 
             # decode
             bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)
-            source_type = NeuronType.SENSOR if int(bin_gene[:1]) == 0 else NeuronType.NEURON
-            num_source = len(list(SensorType)) if source_type == NeuronType.SENSOR else config.MAX_NUMBER_OF_INNER_NEURONS
-            source_id = bin_to_signed_int(bin_gene[1:8]) % num_source
-            target_type = NeuronType.ACTION if int(bin_gene[8:9]) == 0 else NeuronType.NEURON
-            num_target = len(list(ActionType)) if target_type == NeuronType.ACTION else config.MAX_NUMBER_OF_INNER_NEURONS
-            target_id = bin_to_signed_int(bin_gene[9:16]) % num_target
+
+            source_type = NeuronType.SENSOR if int(bin_gene[0]) == 0 else NeuronType.INNER
+            num_unique_sources = len(list(SensorType)) if source_type == NeuronType.SENSOR else config.MAX_NUMBER_OF_INNER_NEURONS
+            source_id = bin_to_signed_int(bin_gene[1:8]) % num_unique_sources
+
+            target_type = NeuronType.ACTION if int(bin_gene[8]) == 0 else NeuronType.INNER
+            num_unique_targets = len(list(ActionType)) if target_type == NeuronType.ACTION else config.MAX_NUMBER_OF_INNER_NEURONS
+            target_id = bin_to_signed_int(bin_gene[9:16]) % num_unique_targets
+
             weight = bin_to_signed_int(bin_gene[16:32]) / 8000  # make it a float from around (-4,4)
 
             # add neurons to NN
@@ -33,20 +37,21 @@ class NeuralNetwork:
                     self.neurons.get(source_type)[source_id] = Sensor(SensorType(source_id))
                 else:
                     self.neurons.get(source_type)[source_id] = Neuron(source_type)
-            elif target_id not in self.neurons.get(target_type):
+
+            if target_id not in self.neurons.get(target_type):
                 self.neurons.get(target_type)[target_id] = Neuron(target_type)
 
             # add connection
             self.neurons.get(source_type).get(source_id).connections.append((self.neurons.get(target_type).get(target_id), weight))
 
-    def run(self):
+    def run(self, step):
         # after feeding sensors values from the world
-        for _, sensor in self.neurons.get(NeuronType.SENSOR):
+        for _, sensor in self.neurons.get(NeuronType.SENSOR).items():
             sensor.sense()
             sensor.forward()
 
-        for _, neuron in self.neurons.get(NeuronType.NEURON):
+        for _, neuron in self.neurons.get(NeuronType.INNER).items():
             neuron.forward()
 
-        for action_type, neuron in self.neurons.get(NeuronType.ACTION):
+        for action_type, neuron in self.neurons.get(NeuronType.ACTION).items():
             neuron.forward()  # Action(action_type, neuron.value)

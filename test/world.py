@@ -1,14 +1,13 @@
 import numpy as np
 
 import config
+from src.external import grid, move_queue, kill_queue
 from src.population.Specimen import Specimen
-from src.utils import random_genome
+from src.utils import random_genome, drain_move_queue, drain_kill_queue
 from src.world.Grid import Grid
 
 
 def initialize():
-    grid = Grid(config.WIDTH, config.HEIGHT)
-
     initials = np.argwhere(grid.data == Grid.EMPTY)
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
     population = [None]
@@ -17,28 +16,30 @@ def initialize():
         population.append(Specimen(i + 1, selected[i], random_genome(config.GENOME_LENGTH)))
         grid.data[selected[i][0], selected[i][1]] = i + 1
 
-    return grid, population
+    return population
 
 
-def simulation(grid, population):
+def one_step(p_specimen, step):
+    p_specimen.age += 1
+    actions = p_specimen.think(step)
+    p_specimen.act(actions)
+
+
+def simulation(population):
     for generation in range(config.NUMBER_OF_GENERATIONS):
         for step in range(config.STEPS_PER_GENERATION):
             for specimen_idx in range(1, config.POPULATION_SIZE + 1):
                 if population[specimen_idx].alive:
-                    population[specimen_idx].age += 1
-                    actions = population[specimen_idx].think(step)
-                    population[specimen_idx].act(actions)
+                    one_step(population[specimen_idx], step)
+
+            drain_kill_queue(kill_queue)
+            drain_move_queue(move_queue)
 
 
 def main():
-    # grid, population = initialize()
+    population = initialize()
 
-    # simulation(grid, population)
-
-    x = {'a': 5, 'b': 6, 'c': 7}
-
-    if 5 in x:
-        print('a is in x')
+    simulation(population)
 
     return
 

@@ -1,6 +1,8 @@
 import random
+from math import tanh, sin, cos
 
-import numpy as np
+from src.external import grid
+from src.types import Conversions
 
 
 def random_genome(length):
@@ -31,11 +33,27 @@ def squeeze(p_x: float) -> float:
 
     assert isinstance(p_x, float)
 
-    return (np.tanh(p_x) + 1) / 2
+    return (tanh(p_x) + 1) / 2
 
 
 def response_curve(p_x: float) -> float:
     pass
+
+
+# for fun
+def rotate(p_a, p_alpha, p_c=(0, 0)):
+    """ rotates p_a around p_c by p_alpha radians """
+    assert isinstance(p_a, tuple) and len(p_a) == 2
+    x = p_a[0]
+    y = p_a[1]
+    assert isinstance(x, (int, float)) and isinstance(y, (int, float))
+    assert isinstance(p_alpha, (int, float))
+    assert isinstance(p_c, tuple) and len(p_c) == 2
+    a = p_c[0]
+    b = p_c[1]
+    assert isinstance(a, (int, float)) and isinstance(b, (int, float))
+
+    return (x - a) * cos(p_alpha) - (y - b) * sin(p_alpha) + a, (x - a) * sin(p_alpha) + (y - b) * cos(p_alpha) + b
 
 
 def bin_to_signed_int(binary):
@@ -46,3 +64,23 @@ def bin_to_signed_int(binary):
         # If negative, compute the two's complement
         int_value -= (1 << 16)
     return int_value
+
+
+def drain_kill_queue(p_queue: list):
+    pass
+
+
+def drain_move_queue(p_queue: list):
+    for record in p_queue:
+        specimen = record[0]
+        new_location = record[1]
+
+        if specimen.alive and grid.is_empty_at(new_location):
+            grid.data[specimen.location.x, specimen.location.y] = 0
+            grid.data[new_location.x, new_location.y] = specimen.index
+            specimen.location = new_location
+            specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
+
+    p_queue.clear()
+
+    return
