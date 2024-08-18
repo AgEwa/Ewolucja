@@ -1,6 +1,7 @@
 import random
 from math import tanh, sin, cos
 
+import config
 from src.external import grid
 from src.types import Conversions
 
@@ -36,8 +37,9 @@ def squeeze(p_x: float) -> float:
     return (tanh(p_x) + 1) / 2
 
 
-def response_curve(p_x: float) -> float:
-    pass
+def response_curve(p_r: float) -> float:
+    k = config.RESPONSIVENESS_CURVE_K_FACTOR
+    return (p_r - 2) ** (-2 * k) - 2 ** (-2 * k) * (1 - p_r)
 
 
 # for fun

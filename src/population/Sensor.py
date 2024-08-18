@@ -10,6 +10,7 @@ class Sensor(Neuron):
         # per sensor type make different sensors that have the same method
         # sense() or sth overwritten and 'senses' sth different
         self.sensor_type = sensor_type
+        self.value = 5
         pass
 
     def sense(self):

@@ -1,3 +1,5 @@
+import math
+
 import config
 
 from src.population.Neuron import Neuron
@@ -53,5 +55,8 @@ class NeuralNetwork:
         for _, neuron in self.neurons.get(NeuronType.INNER).items():
             neuron.forward()
 
+        result = {}
         for action_type, neuron in self.neurons.get(NeuronType.ACTION).items():
-            neuron.forward()  # Action(action_type, neuron.value)
+            result[action_type] = math.tanh(neuron.value)
+
+        return result
