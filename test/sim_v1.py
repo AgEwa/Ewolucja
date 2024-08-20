@@ -24,7 +24,7 @@ def make_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -> str:
     if not os.path.exists(p_folder_name):
         os.mkdir(p_folder_name)
 
-    field_to_color = np.ma.masked_where(p_matrix == 0, p_matrix)
+    field_to_color = np.rot90(np.ma.masked_where(p_matrix == 0, p_matrix), 1)
 
     fig, ax = plt.subplots()
     cmap = mpl.colormaps['gray']
