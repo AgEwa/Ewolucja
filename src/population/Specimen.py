@@ -28,13 +28,9 @@ class Specimen:
         return
 
     def think(self, step):
-        """ returns list of float values that are probabilities of actions """
+        """ returns dict of ActionType key : float value """
 
-        result = [0.0 for _ in range(len(list(ActionType)))]
-
-        self.brain.run(step)
-
-        return result
+        return self.brain.run(step)
 
     def act(self, actions):
         if ActionType.SET_RESPONSIVENESS in actions:

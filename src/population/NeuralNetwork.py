@@ -56,7 +56,7 @@ class NeuralNetwork:
             neuron.forward()
 
         result = {}
-        for action_type, neuron in self.neurons.get(NeuronType.ACTION).items():
-            result[action_type] = math.tanh(neuron.value)
+        for action_type_idx, neuron in self.neurons.get(NeuronType.ACTION).items():
+            result[ActionType(action_type_idx)] = math.tanh(neuron.value)
 
         return result

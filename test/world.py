@@ -31,7 +31,9 @@ def simulation(population):
         print(f'GENERATION {generation}')
         print(grid.data)
 
+        # every generation
         for step in range(config.STEPS_PER_GENERATION):
+            # has some time (in form of steps) to do something
             print(f'STEP {step}')
 
             for specimen_idx in range(1, config.POPULATION_SIZE + 1):
