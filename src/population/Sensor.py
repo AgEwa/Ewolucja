@@ -1,10 +1,10 @@
 import random
 
 import config
+from src.external import grid
 from src.population.Neuron import Neuron
 from src.population.SensorActionEnums import NeuronType, SensorType
 from src.types import Compass
-from src.world.Global import Map
 from utils.Oscilator import Oscillator
 
 
@@ -14,6 +14,7 @@ class Sensor(Neuron):
         self.sensor_type = sensor_type
         self.specimen = specimen
         self.oscillator = Oscillator(1 / specimen.oscPeriod)
+        #self.value = 5
 
     def sense(self):
         sensor_value_methods = {
@@ -53,10 +54,10 @@ class Sensor(Neuron):
         return self.specimen.location[0]
 
     def _get_boundary_distance_x(self):
-        return min(self.specimen.location[1], Map.width - self.specimen.location[1])
+        return min(self.specimen.location[1], grid.width - self.specimen.location[1])
 
     def _get_boundary_distance_y(self):
-        return min(self.specimen.location[0], Map.width - self.specimen.location[0])
+        return min(self.specimen.location[0], grid.width - self.specimen.location[0])
 
     def _get_boundary_distance(self):
         x_dist = self._get_boundary_distance_x()
@@ -87,7 +88,7 @@ class Sensor(Neuron):
                        self.specimen.location[1] + config.NEIGHBOURHOOD_RADIUS + 1):
             for y in range(self.specimen.location[0] - config.NEIGHBOURHOOD_RADIUS,
                            self.specimen.location[0] + config.NEIGHBOURHOOD_RADIUS + 1):
-                if Map.is_occupied_at([y, x]):
+                if grid.is_occupied_at([y, x]):
                     pop += 1
         return pop / (4 * config.NEIGHBOURHOOD_RADIUS ** 2)
 
@@ -121,14 +122,14 @@ class Sensor(Neuron):
             y = self.specimen.location[0]
             range_middle = self.specimen.location[1]
             for x in range(range_middle - config.NEIGHBOURHOOD_RADIUS, range_middle + config.NEIGHBOURHOOD_RADIUS + 1):
-                if Map.is_occupied_at([y, x]):
+                if grid.is_occupied_at([y, x]):
                     pop += 1
 
         else:
             x = self.specimen.location[1]
             range_middle = self.specimen.location[0]
             for y in range(range_middle - config.NEIGHBOURHOOD_RADIUS, range_middle + config.NEIGHBOURHOOD_RADIUS + 1):
-                if Map.is_occupied_at([y, x]):
+                if grid.is_occupied_at([y, x]):
                     pop += 1
 
         return pop / (2 * config.NEIGHBOURHOOD_RADIUS)
@@ -140,9 +141,9 @@ class Sensor(Neuron):
         dir_change = 1 if direction == "R-U" else -1
 
         for i in range(-config.NEIGHBOURHOOD_RADIUS, config.NEIGHBOURHOOD_RADIUS + 1):
-            if Map.is_occupied_at([(y - i)*dir_change, x - i]):
+            if grid.is_occupied_at([(y - i)*dir_change, x - i]):
                 pop += 1
-            if Map.is_occupied_at([(y + i)*dir_change, x + i]):
+            if grid.is_occupied_at([(y + i)*dir_change, x + i]):
                 pop += 1
         return pop / (2 * config.NEIGHBOURHOOD_RADIUS)
 

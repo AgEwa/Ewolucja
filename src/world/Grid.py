@@ -1,5 +1,7 @@
 import numpy as np
 
+from src.types import Coord
+
 
 class Grid:
     EMPTY = 0
@@ -14,10 +16,10 @@ class Grid:
         return
 
     def in_bounds(self, loc):
-        return 0 <= loc[0] < self.width and 0 <= loc[1] < self.height
+        return 0 <= loc.x < self.width and 0 <= loc.y < self.height
 
     def at(self, loc):
-        return self.data[loc[0], loc[1]]
+        return self.data[loc.x, loc.y]
 
     def is_empty_at(self, loc):
         return self.at(loc) == Grid.EMPTY
@@ -33,4 +35,6 @@ class Grid:
         potentials = np.argwhere(self.data == 0)
 
         # select one such index randomly
-        return potentials[np.random.choice(potentials.shape[0])]
+        result = potentials[np.random.choice(potentials.shape[0])]
+
+        return Coord(result[0].item(), result[1].item())

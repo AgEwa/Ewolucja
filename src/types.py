@@ -1,4 +1,3 @@
-import copy
 import math
 from enum import Enum
 
@@ -132,24 +131,8 @@ class Coord:
     def __str__(self):
         return f'Coord({self.x}, {self.y})'
 
-
-class Polar:
-    __slots__ = ['magnitude', 'direction']
-
-    def __init__(self, p_magnitude: int, p_direction: (Compass, Direction)):
-        assert isinstance(p_magnitude, int) and isinstance(p_direction, (Compass, Direction))
-
-        self.magnitude = p_magnitude
-
-        if isinstance(p_direction, Compass):
-            self.direction = Direction(p_direction)
-        else:
-            self.direction = copy.deepcopy(p_direction)
-
-        return
-
-    def __str__(self):
-        return f'Polar({self.magnitude}, {self.direction})'
+    def __repr__(self):
+        return self.__str__()
 
 
 class Conversions:
@@ -178,12 +161,6 @@ class Conversions:
                 return Coord(0, 0)
             case _:
                 raise Exception('ERROR: Unhandled enum Compass constant.')
-
-    @staticmethod
-    def direction_as_normalized_polar(p_direction: Direction) -> 'Polar':
-        assert isinstance(p_direction, Direction)
-
-        return Polar(1, p_direction.compass)
 
     @staticmethod
     def coord_as_direction(p_coord: Coord) -> 'Direction':
@@ -221,15 +198,3 @@ class Conversions:
                 return Direction(Compass.NORTH_WEST)
 
         return Direction(Compass.CENTER)
-
-    @staticmethod
-    def coord_as_polar(p_coord: Coord) -> 'Polar':
-        assert isinstance(p_coord, Coord)
-
-        return Polar(p_coord.length(), Conversions.coord_as_direction(p_coord))
-
-    @staticmethod
-    def polar_as_coord(p_polar: Polar) -> Coord:
-        assert isinstance(p_polar, Polar)
-
-        return Conversions.direction_as_normalized_coord(p_polar.direction) * p_polar.magnitude
