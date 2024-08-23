@@ -3,7 +3,7 @@ import random
 import config
 from src.population.Neuron import Neuron
 from src.population.SensorActionEnums import NeuronType, SensorType
-from src.types.Compass import Compass
+from src.types import Compass
 from src.world.Global import Map
 from utils.Oscilator import Oscillator
 

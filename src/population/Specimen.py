@@ -1,6 +1,6 @@
 import config
 from src.population.NeuralNetwork import NeuralNetwork
-from src.types.Direction import Direction
+from src.types import Direction
 
 
 class Specimen:
