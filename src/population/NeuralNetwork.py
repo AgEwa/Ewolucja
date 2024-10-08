@@ -8,10 +8,10 @@ from utils.utils import bin_to_signed_int
 
 
 class NeuralNetwork:
-    def __init__(self, genome):
+    def __init__(self, genome, specimen):
         # reminder for Michal: we don't use SensorType and ActionType as keys, 'cause INNER neurons don't have types
         self.neurons = {NeuronType.SENSOR: {}, NeuronType.INNER: {}, NeuronType.ACTION: {}}
-
+        self.specimen = specimen
         self.__genome_to_neural_network(genome)
 
         return
@@ -37,7 +37,7 @@ class NeuralNetwork:
             # add neurons to NN
             if source_id not in self.neurons.get(source_type):
                 if source_type == NeuronType.SENSOR:
-                    self.neurons.get(source_type)[source_id] = Sensor(SensorType(source_id), self)
+                    self.neurons.get(source_type)[source_id] = Sensor(SensorType(source_id), self.specimen)
                 else:
                     self.neurons.get(source_type)[source_id] = Neuron(source_type)
 

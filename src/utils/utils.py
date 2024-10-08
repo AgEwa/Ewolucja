@@ -3,7 +3,7 @@ from math import tanh, sin, cos
 
 import config
 from src.external import grid
-from src.types import Conversions
+from src.typess import Conversions
 
 
 def random_genome(length):
@@ -80,6 +80,7 @@ def drain_move_queue(p_queue: list):
         if specimen.alive and grid.is_empty_at(new_location):
             grid.data[specimen.location.x, specimen.location.y] = 0
             grid.data[new_location.x, new_location.y] = specimen.index
+            specimen.last_movement = new_location - specimen.location
             specimen.location = new_location
             specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
 

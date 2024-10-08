@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.types import Coord
+from src.typess import Coord
 
 
 class Grid:
@@ -38,3 +38,20 @@ class Grid:
         result = potentials[np.random.choice(potentials.shape[0])]
 
         return Coord(result[0].item(), result[1].item())
+
+    # methods with x,y params to not force creation of Coord objects:
+
+    def in_bounds_xy(self, x, y):
+        return 0 <= x < self.width and 0 <= y < self.height
+
+    def at_xy(self, x, y):
+        return self.data[x, y]
+
+    def is_empty_at_xy(self, x, y):
+        return self.at_xy(x, y) == Grid.EMPTY
+
+    def is_barrier_at_xy(self, x, y):
+        return self.at_xy(x, y) == Grid.BARRIER
+
+    def is_occupied_at_xy(self, x, y):
+        return self.at_xy(x, y) != Grid.EMPTY and self.at_xy(x, y) != Grid.BARRIER

@@ -9,7 +9,7 @@ import numpy as np
 import config
 from src.external import grid, move_queue, kill_queue
 from src.population.Specimen import Specimen
-from src.types import Coord
+from src.typess import Coord
 from src.utils.utils import random_genome, drain_move_queue, drain_kill_queue
 from src.world.Grid import Grid
 
