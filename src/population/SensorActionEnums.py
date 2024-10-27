@@ -25,8 +25,8 @@ class SensorType(AutoNumber):
     BOUNDARY_DIST = ()  # I distance to nearest edge of world
     BOUNDARY_DIST_Y = ()  # I Y distance to nearest edge of world
     GENETIC_SIM_FWD = ()  # I genetic similarity to forward neighbour
-    LAST_MOVE_DIR_X = ()  # I +- amount of X movement in last movement
-    LAST_MOVE_DIR_Y = ()  # I +- amount of Y movement in last movement
+    LAST_MOVE_DIST_X = ()  # I +- amount of X movement in last movement
+    LAST_MOVE_DIST_Y = ()  # I +- amount of Y movement in last movement
     LONGPROBE_POP_FWD = ()  # W long look for population forward
     LONGPROBE_BAR_FWD = ()  # W long look for barriers forward
     POPULATION = ()  # W population density in neighborhood

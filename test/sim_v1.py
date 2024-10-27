@@ -9,8 +9,8 @@ import numpy as np
 import config
 from src.external import grid, move_queue, kill_queue
 from src.population.Specimen import Specimen
-from src.types import Coord
-from src.utils import random_genome, drain_move_queue, drain_kill_queue
+from src.typess import Coord
+from src.utils.utils import random_genome, drain_move_queue, drain_kill_queue
 from src.world.Grid import Grid
 
 
@@ -64,11 +64,13 @@ def initialize() -> list[Specimen]:
     initials = np.argwhere(grid.data == Grid.EMPTY)
     # randomly select sufficient amount of spaces for population
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
-    # index 0 is reserved, as indexes in population list will be placed on grid at their positions so to reference them. Index 0 means empty space
+    # index 0 is reserved, as indexes in population list will be placed on grid at their positions so to reference
+    # them. Index 0 means empty space
     population = [None]
 
     for i in range(config.POPULATION_SIZE):
-        # create specimen and add it to population. Save its index (in population list), location (in grid) and randomly generated genome
+        # create specimen and add it to population. Save its index (in population list), location (in grid) and
+        # randomly generated genome
         population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), random_genome(config.GENOME_LENGTH)))
         # place index (reference to population list) on grid
         grid.data[selected[i][0], selected[i][1]] = i + 1

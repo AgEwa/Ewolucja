@@ -1,12 +1,19 @@
-from src.population.NeuralNetwork import NeuralNetwork
-from src.utils import generate_hex
+from src.population.Specimen import Specimen
+from src.typess import Coord
+from utils.utils import generate_hex
+
 
 def test_genome_to_NN():
     genome = [generate_hex() for _ in range(10)]
-    net = NeuralNetwork(genome,4)
+    net = Specimen(0, Coord(0, 0), genome).brain
     print(net.neurons)
 
-def test():
+
+def main():
     test_genome_to_NN()
 
-test()
+    return
+
+
+if __name__ == '__main__':
+    main()

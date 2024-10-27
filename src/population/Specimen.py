@@ -6,8 +6,8 @@ import config
 from src.external import grid, move_queue
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
-from src.types import Direction, Conversions, Coord
-from src.utils import squeeze, response_curve, probability
+from src.typess import Direction, Conversions, Coord
+from src.utils.utils import squeeze, response_curve, probability
 
 
 class Specimen:
@@ -18,12 +18,13 @@ class Specimen:
         self.birth_location = loc
         self.age = 0
         self.genome = genome
-        self.brain = NeuralNetwork(genome)
         self.responsiveness = 0.5
         self.osc_period = 34
         self.long_probe_dist = config.LONG_PROBE_DISTANCE
-        self.last_movement_direction = Direction.random()
+        self.last_movement_direction = Direction.random()  # Direction object with compass field
+        self.last_movement = Coord(0, 0)  # Coord object with x/y values of movement in that direction
         self.challenge_bits = False
+        self.brain = NeuralNetwork(genome, self)
 
         return
 
