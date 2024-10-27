@@ -14,7 +14,8 @@ class Specimen:
     def __init__(self, index, loc, genome):
         self.alive = True
         self.index = index
-        self.location = loc  # [y,x]
+        self.location = loc
+        self.birth_location = loc
         self.age = 0
         self.genome = genome
         self.responsiveness = 0.5
@@ -145,23 +146,12 @@ class Specimen:
             move_x += offset.x * level
             move_y += offset.y * level
 
-        # squeeze total x movement into [-1; 1]
-        move_x = np.tanh(move_x)
-        # squeeze total y movement into [-1; 1]
-        move_y = np.tanh(move_y)
-        # apply adjusted responsiveness
-        move_x *= responsiveness_adj
-        move_y *= responsiveness_adj
-        # treat absolute value of move_* as probability of movement along axis. Convert it to int so specimen moves
-        # no more than 1 tile away
-        prob_x = int(probability(abs(move_x)))
-        prob_y = int(probability(abs(move_y)))
-        # sign to decide which direction
-        sign_x = -1 if move_x < 0 else 1
-        sign_y = -1 if move_y < 0 else 1
+        # calculate probabilities of moving along axes
+        prob_x = int(probability(abs(np.tanh(move_x) * responsiveness_adj)))
+        prob_y = int(probability(abs(np.tanh(move_y) * responsiveness_adj)))
 
         # compose offset
-        offset = Coord(sign_x * prob_x, sign_y * prob_y)
+        offset = Coord(int(move_x) * prob_x, int(move_y) * prob_y)
         # calculate new location
         new_location = self.location + offset
 
