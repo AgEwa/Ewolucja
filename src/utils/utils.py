@@ -6,8 +6,17 @@ from src.external import grid
 from src.typess import Conversions
 
 
-def random_genome(length):
-    return [generate_hex() for _ in range(length)]
+def initialize_genome(neuron_link_amount: int) -> list:
+    """
+    Initializes a list of genes.
+    First gene is a 2-digit hex set to ENTRY_MAX_ENERGY_LEVEL.
+    Other genes are generated as 8-digit hex describing links in neural network of a Specimen
+    :param neuron_link_amount: amount of links in Specimen's brain (neural network)
+    :return: list of genes specifying max energy level and specimen's neural network
+    """
+    genome = [f"{config.ENTRY_MAX_ENERGY_LEVEL:02X}"]
+    genome.extend([generate_hex() for _ in range(neuron_link_amount)])
+    return genome
 
 
 def generate_hex():
@@ -58,7 +67,7 @@ def rotate(p_a, p_alpha, p_c=(0, 0)):
     return (x - a) * cos(p_alpha) - (y - b) * sin(p_alpha) + a, (x - a) * sin(p_alpha) + (y - b) * cos(p_alpha) + b
 
 
-def bin_to_signed_int(binary):
+def bin_to_signed_int(binary: bin) -> int:
     int_value = int(binary, 2)
 
     # Check the most significant bit to determine if the number is negative

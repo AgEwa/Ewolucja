@@ -16,3 +16,10 @@ STEPS_PER_GENERATION = 100
 RESPONSIVENESS_CURVE_K_FACTOR = 2
 
 NEIGHBOURHOOD_RADIUS = 3
+
+# Food & energy related const.
+FOOD_ADDED_ENERGY = 2
+FOOD_INCREASED_MAX_LEVEL = 0.1
+ENERGY_PER_ONE_UNIT_OF_MOVE = 0.2
+ENTRY_MAX_ENERGY_LEVEL = 10  # = 5 food, = 50 units of movement
+MAX_ENERGY_LEVEL_SUPREMUM = 50  # 400 times increased, allows for 25 food and 200 units of movement

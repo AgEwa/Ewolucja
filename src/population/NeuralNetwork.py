@@ -16,8 +16,9 @@ class NeuralNetwork:
 
         return
 
-    def __genome_to_neural_network(self, genome):
+    def __genome_to_neural_network(self, genome: list):
         for hex_gene in genome:
+            assert len(hex_gene) == 8
 
             # decode
             bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)

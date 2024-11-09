@@ -10,7 +10,7 @@ import config
 from src.external import grid, move_queue, kill_queue
 from src.population.Specimen import Specimen
 from src.typess import Coord
-from src.utils.utils import random_genome, drain_move_queue, drain_kill_queue
+from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue
 from src.world.Grid import Grid
 
 
@@ -71,7 +71,7 @@ def initialize() -> list[Specimen]:
     for i in range(config.POPULATION_SIZE):
         # create specimen and add it to population. Save its index (in population list), location (in grid) and
         # randomly generated genome
-        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), random_genome(config.GENOME_LENGTH)))
+        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), initialize_genome(config.GENOME_LENGTH)))
         # place index (reference to population list) on grid
         grid.data[selected[i][0], selected[i][1]] = i + 1
 

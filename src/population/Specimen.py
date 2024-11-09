@@ -10,6 +10,10 @@ from src.typess import Direction, Conversions, Coord
 from src.utils.utils import squeeze, response_curve, probability
 
 
+def get_max_energy_level_from_genome(hex_gene: str) -> int:
+    return int(hex_gene, 16) % config.MAX_ENERGY_LEVEL_SUPREMUM
+
+
 class Specimen:
     def __init__(self, index, loc, genome):
         self.alive = True
@@ -24,6 +28,8 @@ class Specimen:
         self.last_movement_direction = Direction.random()  # Direction object with compass field
         self.last_movement = Coord(0, 0)  # Coord object with x/y values of movement in that direction
         self.challenge_bits = False
+        self.max_energy_level = get_max_energy_level_from_genome(genome.pop(0))
+        self.energy = self.max_energy_level  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
         self.brain = NeuralNetwork(genome, self)
 
         return
