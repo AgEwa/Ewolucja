@@ -1,5 +1,8 @@
+from population.SensorActionEnums import NeuronType
+
+
 class Neuron:
-    def __init__(self, neuron_type):
+    def __init__(self, neuron_type: NeuronType):
         self.type = neuron_type
         self.value = 0
         self.connections = []  # pairs, neuron and weight

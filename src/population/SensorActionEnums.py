@@ -32,7 +32,7 @@ class SensorType(AutoNumber):
     POPULATION = ()  # W population density in neighborhood
     POPULATION_FWD = ()  # W population density in the forward-reverse axis
     POPULATION_LR = ()  # W population density in the left-right axis
-    OSC1 = ()  # I oscillator +-value
+    OSC = ()  # I oscillator +-value
     AGE = ()  # I
     BARRIER_FWD = ()  # W neighborhood barrier distance forward-reverse axis
     BARRIER_LR = ()  # W neighborhood barrier distance left-right axis

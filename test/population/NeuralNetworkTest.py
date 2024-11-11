@@ -1,5 +1,5 @@
+from src.LocationTypes import Coord
 from src.population.Specimen import Specimen
-from src.typess import Coord
 from utils.utils import generate_hex
 
 

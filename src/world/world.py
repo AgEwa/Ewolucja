@@ -1,21 +1,21 @@
 import numpy as np
 
 import config
+from src.LocationTypes import Coord
 from src.external import grid, move_queue, kill_queue, pop
 from src.population.Specimen import Specimen
-from src.typess import Coord
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue
 from src.world.Grid import Grid
 
 
 def initialize():
-    initials = np.argwhere(grid.data == Grid.EMPTY)
+    initials = np.argwhere(np.isin(grid.data, Grid.EMPTY))
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
 
     for i in range(config.POPULATION_SIZE):
-        pop.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), initialize_genome(config.GENOME_LENGTH)))
+        pop.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()),
+                            initialize_genome(config.GENOME_LENGTH)))
         grid.data[selected[i][0], selected[i][1]] = i + 1
-
 
 
 def one_step(p_specimen, step):

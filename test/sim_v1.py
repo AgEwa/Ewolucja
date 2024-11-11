@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import config
+from src.LocationTypes import Coord
 from src.external import grid, move_queue, kill_queue
 from src.population.Specimen import Specimen
-from src.typess import Coord
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue
 from src.world.Grid import Grid
 
@@ -61,7 +61,7 @@ def initialize() -> list[Specimen]:
     """ initializes population with randomly placed specimen across the grid """
 
     # look for empty spaces
-    initials = np.argwhere(grid.data == Grid.EMPTY)
+    initials = np.argwhere(np.isin(grid.data, Grid.EMPTY))
     # randomly select sufficient amount of spaces for population
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
     # index 0 is reserved, as indexes in population list will be placed on grid at their positions so to reference

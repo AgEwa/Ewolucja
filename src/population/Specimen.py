@@ -3,10 +3,10 @@ import math
 import numpy as np
 
 import config
+from src.LocationTypes import Direction, Conversions, Coord
 from src.external import grid, move_queue
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
-from src.typess import Direction, Conversions, Coord
 from src.utils.utils import squeeze, response_curve, probability
 
 
@@ -15,7 +15,7 @@ def get_max_energy_level_from_genome(hex_gene: str) -> int:
 
 
 class Specimen:
-    def __init__(self, index, loc, genome):
+    def __init__(self, index: int, loc: Coord, genome: str):
         self.alive = True
         self.index = index
         self.location = loc
@@ -33,6 +33,11 @@ class Specimen:
         self.brain = NeuralNetwork(genome, self)
 
         return
+
+    def eat(self):
+        self.energy += config.FOOD_ADDED_ENERGY
+        if self.max_energy_level < config.MAX_ENERGY_LEVEL_SUPREMUM:
+            self.max_energy_level += config.FOOD_INCREASED_MAX_LEVEL
 
     def think(self, p_step: int) -> dict[ActionType, float]:
         """ returns dict of ActionType key : float value """

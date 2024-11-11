@@ -2,8 +2,8 @@ import random
 from math import tanh, sin, cos
 
 import config
+from src.LocationTypes import Conversions
 from src.external import grid
-from src.typess import Conversions
 
 
 def initialize_genome(neuron_link_amount: int) -> list:
