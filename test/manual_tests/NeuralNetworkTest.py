@@ -1,6 +1,6 @@
 from src.LocationTypes import Coord
 from src.population.Specimen import Specimen
-from utils.utils import generate_hex
+from src.utils.utils import generate_hex
 
 
 def test_genome_to_NN():

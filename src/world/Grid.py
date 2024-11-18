@@ -16,6 +16,11 @@ class Grid:
 
         return
 
+    def reset(self):
+        self.data = np.zeros((self.width, self.height), dtype=np.int16)
+
+        return
+
     def in_bounds(self, loc: Coord):
         return 0 <= loc.x < self.width and 0 <= loc.y < self.height
 

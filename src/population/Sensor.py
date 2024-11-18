@@ -3,10 +3,10 @@ import random
 from config import NEIGHBOURHOOD_RADIUS
 from src.LocationTypes import Conversions, Direction
 from src.external import grid
-from src.external import pop as population
+from src.external import population
 from src.population.Neuron import Neuron
 from src.population.SensorActionEnums import NeuronType
-from utils.Oscilator import Oscillator
+from src.utils.Oscilator import Oscillator
 
 
 class Sensor(Neuron):
@@ -76,6 +76,7 @@ class Sensor(Neuron):
 
                 if grid.in_bounds_xy(x, y) and grid.is_occupied_at_xy(x, y):
                     pop += 1
+
         return pop / (4 * NEIGHBOURHOOD_RADIUS ** 2)
 
     def _get_population_fwd(self):
@@ -101,7 +102,6 @@ class Sensor(Neuron):
         i = 1
         j = 1
         mod = Conversions.direction_as_normalized_coord(direction)  # returns -1/0/1 for x and y based on direction
-
         while (grid.in_bounds_xy(x + mod.x * i, y + mod.y * i)
                and not grid.is_barrier_at_xy(x + mod.x * i, y + mod.y * i)):
             i += 1
@@ -151,8 +151,7 @@ class Sensor(Neuron):
         mod = Conversions.direction_as_normalized_coord(self.specimen.last_movement_direction)
         # direction_as_normalized_coord returns -1/0/1 for x and y based on direction
 
-        while (grid.in_bounds_xy(x + mod.x * i, y + mod.y * i)
-               and not check(x + mod.x * i, y + mod.y * i)):
+        while grid.in_bounds_xy(x + mod.x * i, y + mod.y * i) and not check(x + mod.x * i, y + mod.y * i):
             i += 1
 
         if goal == "pop_gen" and grid.in_bounds_xy(x + mod.x * i, y + mod.y * i):

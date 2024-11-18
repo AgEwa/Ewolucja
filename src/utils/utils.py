@@ -2,7 +2,7 @@ import random
 from math import tanh, sin, cos
 
 import config
-from src.LocationTypes import Conversions
+from src.LocationTypes import Conversions, Coord
 from src.external import grid
 
 
@@ -14,9 +14,8 @@ def initialize_genome(neuron_link_amount: int) -> list:
     :param neuron_link_amount: amount of links in Specimen's brain (neural network)
     :return: list of genes specifying max energy level and specimen's neural network
     """
-    genome = [f"{config.ENTRY_MAX_ENERGY_LEVEL:02X}"]
-    genome.extend([generate_hex() for _ in range(neuron_link_amount)])
-    return genome
+
+    return [generate_hex() for _ in range(neuron_link_amount)]
 
 
 def generate_hex():
@@ -48,17 +47,21 @@ def squeeze(p_x: float) -> float:
 
 def response_curve(p_r: float) -> float:
     k = config.RESPONSIVENESS_CURVE_K_FACTOR
+
     return (p_r - 2) ** (-2 * k) - 2 ** (-2 * k) * (1 - p_r)
 
 
 # for fun
 def rotate(p_a, p_alpha, p_c=(0, 0)):
     """ rotates p_a around p_c by p_alpha radians """
+
     assert isinstance(p_a, tuple) and len(p_a) == 2
     x = p_a[0]
     y = p_a[1]
     assert isinstance(x, (int, float)) and isinstance(y, (int, float))
+
     assert isinstance(p_alpha, (int, float))
+
     assert isinstance(p_c, tuple) and len(p_c) == 2
     a = p_c[0]
     b = p_c[1]
@@ -81,18 +84,28 @@ def drain_kill_queue(p_queue: list):
     pass
 
 
-def drain_move_queue(p_queue: list):
+def drain_move_queue(p_queue: list) -> None:
+    """ allows every specimen to move """
+
     for record in p_queue:
+        # retrieve specimen
         specimen = record[0]
+        # retrieve desired location
         new_location = record[1]
-
+        # if specimen is alive and desired location is available
         if specimen.alive and grid.is_empty_at(new_location):
+            # free previously occupied space
             grid.data[specimen.location.x, specimen.location.y] = 0
+            # take new location
             grid.data[new_location.x, new_location.y] = specimen.index
+            # remember last movement
             specimen.last_movement = new_location - specimen.location
+            # remember last movement direction
+            specimen.last_movement_direction = Conversions.coord_as_direction(specimen.last_movement)
+            # set new location for specimen
             specimen.location = new_location
-            specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
 
+    # clear move queue
     p_queue.clear()
 
     return

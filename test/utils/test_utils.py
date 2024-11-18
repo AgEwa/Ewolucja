@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from utils.utils import *
+from src.utils.utils import *
 
 
 class TestUtils(TestCase):

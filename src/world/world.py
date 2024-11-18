@@ -2,7 +2,7 @@ import numpy as np
 
 import config
 from src.LocationTypes import Coord
-from src.external import grid, move_queue, kill_queue, pop
+from src.external import grid, move_queue, kill_queue, population
 from src.population.Specimen import Specimen
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue
 from src.world.Grid import Grid
@@ -13,8 +13,8 @@ def initialize():
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
 
     for i in range(config.POPULATION_SIZE):
-        pop.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()),
-                            initialize_genome(config.GENOME_LENGTH)))
+        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()),
+                                   initialize_genome(config.GENOME_LENGTH)))
         grid.data[selected[i][0], selected[i][1]] = i + 1
 
 
@@ -48,7 +48,7 @@ def simulation(population):
 
 def main():
     initialize()
-    simulation(pop)
+    simulation(population)
 
     return
 

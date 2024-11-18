@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from LocationTypes import Coord
-from world.Grid import Grid
+from src.LocationTypes import Coord
+from src.world.Grid import Grid
 
 
 class TestGrid(TestCase):

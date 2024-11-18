@@ -4,7 +4,7 @@ import config
 from src.population.Neuron import Neuron
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType, ActionType, NeuronType
-from utils.utils import bin_to_signed_int
+from src.utils.utils import bin_to_signed_int
 
 
 class NeuralNetwork:

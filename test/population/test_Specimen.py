@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import config
-from population.Specimen import get_max_energy_level_from_genome
+from src.population.Specimen import get_max_energy_level_from_genome
 
 
 class TestSpecimen(TestCase):

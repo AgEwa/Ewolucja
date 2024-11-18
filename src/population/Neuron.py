@@ -1,4 +1,4 @@
-from population.SensorActionEnums import NeuronType
+from src.population.SensorActionEnums import NeuronType
 
 
 class Neuron:
