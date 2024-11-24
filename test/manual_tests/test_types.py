@@ -1,4 +1,4 @@
-from src.typess import Coord, Conversions
+from src.LocationTypes import Coord, Conversions
 
 
 def main():

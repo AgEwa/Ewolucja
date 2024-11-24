@@ -4,7 +4,7 @@ import config
 from src.population.Neuron import Neuron
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType, ActionType, NeuronType
-from utils.utils import bin_to_signed_int
+from src.utils.utils import bin_to_signed_int
 
 
 class NeuralNetwork:
@@ -16,8 +16,9 @@ class NeuralNetwork:
 
         return
 
-    def __genome_to_neural_network(self, genome):
+    def __genome_to_neural_network(self, genome: list):
         for hex_gene in genome:
+            assert len(hex_gene) == 8
 
             # decode
             bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)

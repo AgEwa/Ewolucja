@@ -2,9 +2,9 @@ from unittest import TestCase
 from unittest.mock import Mock, patch, MagicMock
 
 from config import NEIGHBOURHOOD_RADIUS
+from src.LocationTypes import Direction
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType
-from src.typess import Direction
 
 
 class TestSensor(TestCase):
@@ -45,9 +45,7 @@ class TestSensor(TestCase):
 
         # Create a mock for the population data
         self.mock_population = MagicMock()
-        self.mock_population.__getitem__.side_effect = lambda idx: {
-            1: self.mock_other_specimen
-        }.get(idx, None)
+        self.mock_population.__getitem__.side_effect = lambda idx: {1: self.mock_other_specimen}.get(idx, None)
 
         # Patch where `population` is being used in the `Sensor` class
         self.population_patch = patch('src.population.Sensor.population', self.mock_population)
@@ -61,18 +59,21 @@ class TestSensor(TestCase):
         self.mock_mod = Mock()
         self.mock_mod.x = 1
         self.mock_mod.y = 0
-        patch('src.typess.Conversions.direction_as_normalized_coord', return_value=self.mock_mod).start()
+        self.direction_as_normalized_coord_patch = patch('src.LocationTypes.Conversions.direction_as_normalized_coord',
+                                                         return_value=self.mock_mod)
+        self.direction_as_normalized_coord_patch.start()
 
     def tearDown(self):
         self.population_patch.stop()
         self.neighbourhood_radius_patch.stop()
+        self.direction_as_normalized_coord_patch.stop()
 
     def test_get_specimen_age(self):
         # Testing the `sense()` method for SensorType.AGE
         self.sensor.sense()
 
         # Since sensor type is AGE, the value should be the age of the mock specimen
-        self.assertEqual(self.sensor.value, 5)
+        self.assertEqual(5, self.sensor.value)
 
     def test_get_location_x(self):
         # Changing the sensor type to LOC_X
@@ -80,7 +81,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # The value should now reflect the x-coordinate of the location
-        self.assertEqual(self.sensor.value, 2)
+        self.assertEqual(2, self.sensor.value)
 
     def test_get_random_value(self):
         # Changing the sensor type to RANDOM
@@ -101,7 +102,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # Since location.x is 2 and grid width is 5, the minimum distance to boundary is 2
-        self.assertEqual(self.sensor.value, 2)
+        self.assertEqual(2, self.sensor.value)
 
     def test_get_boundary_distance_y(self):
         # Changing the sensor type to BOUNDARY_DIST_Y
@@ -109,7 +110,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # Since location.y is 3 and grid height is 5, the minimum distance to boundary is 2
-        self.assertEqual(self.sensor.value, 2)
+        self.assertEqual(2, self.sensor.value)
 
     def test_get_boundary_distance(self):
         # Changing the sensor type to BOUNDARY_DIST
@@ -117,7 +118,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # Since the boundary distances are 2 for x and 2 for y, the minimum distance should be 2
-        self.assertEqual(self.sensor.value, 2)
+        self.assertEqual(2, self.sensor.value)
 
     def test_get_last_move_dist_y(self):
         # Changing the sensor type to LAST_MOVE_DIST_Y
@@ -125,7 +126,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # The value should reflect the last movement in the y direction, which is 2
-        self.assertEqual(self.sensor.value, 2)
+        self.assertEqual(2, self.sensor.value)
 
     def test_get_last_move_dist_x(self):
         # Changing the sensor type to LAST_MOVE_DIST_X
@@ -133,7 +134,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # The value should reflect the last movement in the x direction, which is 1
-        self.assertEqual(self.sensor.value, 1)
+        self.assertEqual(1, self.sensor.value)
 
     def test_get_population_density_in_neighbourhood(self):
         # Changing the sensor type to POPULATION
@@ -148,9 +149,7 @@ class TestSensor(TestCase):
 
         # There are 3 occupied cells in a neighborhood of 9 cells (3x3 grid)s
         expected_density = 3 / (4 * NEIGHBOURHOOD_RADIUS ** 2)  # 3 / (4 * 1^2) = 3 / 4 = 0.75
-        self.assertAlmostEqual(self.sensor.value, expected_density)
-
-        ############################################################# down from here doesn't work because of pop etc
+        self.assertAlmostEqual(expected_density, self.sensor.value, places=2)
 
     def test_get_population_density_forward_reverse(self):
         # Changing the sensor type to POPULATION_FWD
@@ -163,7 +162,7 @@ class TestSensor(TestCase):
 
         # We expect 2 cells in the line of direction to be occupied
         expected_density = 2 / 5
-        self.assertAlmostEqual(self.sensor.value, expected_density, places=2)
+        self.assertAlmostEqual(expected_density, self.sensor.value, places=2)
 
     def test_get_population_density_left_right(self):
         # Changing the sensor type to POPULATION_LR
@@ -176,7 +175,7 @@ class TestSensor(TestCase):
 
         # We expect 2 cells in the perpendicular direction to be occupied
         expected_density = 2 / 5
-        self.assertAlmostEqual(self.sensor.value, expected_density, places=2)
+        self.assertAlmostEqual(expected_density, self.sensor.value, places=2)
 
     def test_get_barrier_dist_forward_reverse(self):
         # Changing the sensor type to BARRIER_FWD
@@ -188,7 +187,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # The barrier is at distance 2 in the forward direction, expect distance to be 2
-        self.assertEqual(self.sensor.value, 2)
+        self.assertEqual(2, self.sensor.value)
 
     def test_get_barrier_dist_left_right(self):
         # Changing the sensor type to BARRIER_LR
@@ -200,7 +199,7 @@ class TestSensor(TestCase):
         self.sensor.sense()
 
         # The barrier is at distance 1 in the left-right direction, expect distance to be 1
-        self.assertEqual(self.sensor.value, 1)
+        self.assertEqual(1, self.sensor.value)
 
     def test_look_forward_pop_gen(self):
         # Changing the sensor type to GENETIC_SIM_FWD
@@ -215,7 +214,32 @@ class TestSensor(TestCase):
 
         # Calculate expected similarity manually
         expected_similarity = self.sensor._genetic_similarity(['cafedead', 'babe1234', '87654321'])
-        self.assertEqual(self.sensor.value, expected_similarity)
+        self.assertEqual(expected_similarity, self.sensor.value)
+
+    def test_look_forward_pop(self):
+        # Changing the sensor type to LONGPROBE_POP_FWD
+        self.sensor.sensor_type = SensorType.LONGPROBE_POP_FWD
+
+        # Mock the grid to have an occupied cell with another specimen genome
+        self.grid_mock.is_occupied_at_xy.return_value = True
+
+        # Calculate
+        self.sensor.sense()
+
+        self.assertEqual(1, self.sensor.value)
+
+    def test_look_forward_bar(self):
+        # Changing the sensor type to LONGPROBE_BAR_FWD
+        self.sensor.sensor_type = SensorType.LONGPROBE_BAR_FWD
+
+        # Mock the grid to have an occupied cell with another specimen genome
+        self.grid_mock.is_barrier_at_xy.return_value = True
+        self.grid_mock.at_xy = Mock(return_value=1)  # index in pop to get specimen
+
+        # Calculate
+        self.sensor.sense()
+
+        self.assertEqual(1, self.sensor.value)
 
     def test_genetic_similarity(self):
         # Manually test genetic similarity calculation between two genomes

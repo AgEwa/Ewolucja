@@ -3,30 +3,48 @@ import math
 import numpy as np
 
 import config
+from src.LocationTypes import Direction, Conversions, Coord
 from src.external import grid, move_queue
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
-from src.typess import Direction, Conversions, Coord
 from src.utils.utils import squeeze, response_curve, probability
 
 
+def get_max_energy_level_from_genome(hex_gene: str) -> int:
+    return int(hex_gene, 16) % config.MAX_ENERGY_LEVEL_SUPREMUM
+
+
 class Specimen:
-    def __init__(self, index, loc, genome):
+    def __init__(self, p_index: int, p_birth_location: Coord, p_genome: list):
         self.alive = True
-        self.index = index
-        self.location = loc
-        self.birth_location = loc
+        self.index = p_index
+        self.birth_location = p_birth_location
+        self.location = self.birth_location
         self.age = 0
-        self.genome = genome
         self.responsiveness = 0.5
         self.osc_period = 34
         self.long_probe_dist = config.LONG_PROBE_DISTANCE
-        self.last_movement_direction = Direction.random()  # Direction object with compass field
-        self.last_movement = Coord(0, 0)  # Coord object with x/y values of movement in that direction
+        # Direction object with compass field
+        self.last_movement_direction = Direction.random()
+        # Coord object with x/y values of movement in that direction
+        self.last_movement = Conversions.direction_as_normalized_coord(self.last_movement_direction)
         self.challenge_bits = False
-        self.brain = NeuralNetwork(genome, self)
+        self.max_energy = config.ENTRY_MAX_ENERGY_LEVEL
+        self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
+        self.genome = p_genome
+        self.brain = NeuralNetwork(p_genome, self)
 
         return
+
+    def eat(self):
+        # update energy
+        self.energy += config.FOOD_ADDED_ENERGY
+        # if it ate more than allowed, then trim
+        if self.energy > self.max_energy:
+            self.energy = self.max_energy
+        # try to increase max energy level
+        if self.max_energy < config.MAX_ENERGY_LEVEL_SUPREMUM:
+            self.max_energy += config.FOOD_INCREASED_MAX_LEVEL
 
     def think(self, p_step: int) -> dict[ActionType, float]:
         """ returns dict of ActionType key : float value """
