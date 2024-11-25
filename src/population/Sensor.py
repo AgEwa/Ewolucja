@@ -7,6 +7,7 @@ from src.external import population
 from src.population.Neuron import Neuron
 from src.population.SensorActionEnums import NeuronType
 from src.utils.Oscilator import Oscillator
+from src.utils.utils import squeeze
 
 
 class Sensor(Neuron):
@@ -20,7 +21,7 @@ class Sensor(Neuron):
         method_name = f"_get_{self.sensor_type.name.lower()}"
         method = getattr(self, method_name, None)
         if method:
-            self.value = method()
+            self.value = squeeze(float(method()))
         else:
             self.value = 0
         return

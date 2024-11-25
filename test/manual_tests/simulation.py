@@ -6,11 +6,9 @@ import imageio.v2 as imageio
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from fontTools.misc.psLib import ps_special
-from select import select
 
 import config
-from src.LocationTypes import Coord, Compass, Direction
+from src.LocationTypes import Coord
 from src.external import grid, population, move_queue, kill_queue
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.Specimen import Specimen
@@ -62,11 +60,30 @@ def to_gif(p_target_name: str, p_filenames: list[str]) -> None:
     return
 
 
-def initialize() -> None:
+def initialize_world():
+    """
+    Initializes the world by modifying global grid to place barriers and food sources.
+    """
+    # assert that grid is empty
+    assert (grid.data == Grid.EMPTY).all()
+    assert not grid.food_data
+    # list of all indexes available in the grid
+    all_places = [(row, col) for row in range(grid.height) for col in range(grid.width)]
+    # select indexes for barriers and update grid object
+    bar_placement = random.sample(all_places, config.BARRIERS_NUMBER)
+    grid.set_barriers_at_indexes(bar_placement)
+    # list of available indexes left
+    places_left = list(set(all_places).difference(bar_placement))
+    # select indexes for food sources and update grid object
+    food_placement = random.sample(places_left, config.FOOD_SOURCES_NUMBER)
+    grid.set_food_sources_at_indexes(food_placement)
+
+
+def initialize_population() -> None:
     """ initializes population with randomly placed specimen across the grid """
 
     # look for empty spaces
-    initials = np.argwhere(np.isin(grid.data, Grid.EMPTY))
+    initials = np.argwhere(grid.data == Grid.EMPTY)
     # randomly select sufficient amount of spaces for population
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
 
@@ -89,7 +106,7 @@ def new_generation_initialize(p_genomes: list) -> None:
     population.append(None)
 
     # look for empty spaces
-    initials = np.argwhere(np.isin(grid.data, Grid.EMPTY))
+    initials = np.argwhere(grid.data == Grid.EMPTY)
     # randomly select sufficient amount of spaces for population
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
 
@@ -118,7 +135,6 @@ def one_step(p_specimen: Specimen, p_step: int) -> None:
     actions = p_specimen.think(p_step)
     # evaluate previously retrieved actions
     p_specimen.act(actions)
-    p_specimen.energy -= config.ENERGY_PER_ONE_UNIT_OF_MOVE
 
     return
 
@@ -207,7 +223,8 @@ def simulation() -> None:
     filenames = []
 
     # population of specimens
-    initialize()
+    initialize_world()
+    initialize_population()
 
     # simulation loop
     for generation in range(config.NUMBER_OF_GENERATIONS):

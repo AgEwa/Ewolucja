@@ -3,6 +3,14 @@
 WIDTH = 100
 HEIGHT = 100
 
+## initialization const ##
+
+BARRIERS_NUMBER = 100
+FOOD_SOURCES_NUMBER = 50
+FOOD_PER_SOURCE_MIN = 5
+FOOD_PER_SOURCE_MAX = 10
+
+
 ## evolution ##
 
 POPULATION_SIZE = 100
@@ -41,7 +49,6 @@ MUTATE_N_BITS = 2
 
 ## selection ##
 
-#
 SELECT_N_SPECIMENS = int(0.1 * POPULATION_SIZE)
 
 ## animation ##

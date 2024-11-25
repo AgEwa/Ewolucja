@@ -9,7 +9,6 @@ class AutoNumber(Enum):
         return obj
 
 
-# copy paste z gita z YT
 # I - data about individual specimen
 # W - data about the world
 class NeuronType(Enum):
@@ -29,9 +28,15 @@ class SensorType(AutoNumber):
     LAST_MOVE_DIST_Y = ()  # I +- amount of Y movement in last movement
     LONGPROBE_POP_FWD = ()  # W long look for population forward
     LONGPROBE_BAR_FWD = ()  # W long look for barriers forward
+    LONGPROBE_FOOD_FWD = ()  # W long look for food forward
     POPULATION = ()  # W population density in neighborhood
     POPULATION_FWD = ()  # W population density in the forward-reverse axis
     POPULATION_LR = ()  # W population density in the left-right axis
+    FOOD = ()  # W food density in neighborhood
+    FOOD_FWD = ()  # W food density in the forward-reverse axis
+    FOOD_LR = ()  # W food density in the left-right axis
+    FOOD_DIST_FWD = ()  # W neighborhood food distance in the forward-reverse axis
+    FOOD_DIST_LR = ()  # W neighborhood food distance in the left-right axis
     OSC = ()  # I oscillator +-value
     AGE = ()  # I
     BARRIER_FWD = ()  # W neighborhood barrier distance forward-reverse axis
