@@ -123,24 +123,10 @@ def new_generation_initialize(p_genomes: list) -> None:
     return
 
 
-def one_step(p_specimen: Specimen, p_step: int) -> None:
-    """ supports single simulation step for specified specimen """
-
-    assert isinstance(p_specimen, Specimen)
-    assert isinstance(p_step, int) and p_step >= 0
-
-    # make specimen older by one unit
-    p_specimen.age += 1
-    # retrieve actions specimen would execute
-    actions = p_specimen.think(p_step)
-    # evaluate previously retrieved actions
-    p_specimen.act(actions)
-
-    return
-
-
 def mutate(p_specimen: Specimen) -> None:
     """ makes given specimen mutate """
+
+    # FIXME: genome length not always right (select for duplicated genes)
 
     genome = p_specimen.genome.copy()
 
@@ -170,7 +156,7 @@ def mutate(p_specimen: Specimen) -> None:
 
     # update genome
     genome = genome + selected
-
+    assert len(genome) == config.GENOME_LENGTH
     p_specimen.genome = genome
     p_specimen.brain = NeuralNetwork(genome, p_specimen)
 
@@ -246,7 +232,7 @@ def simulation() -> None:
                         mutate(population[specimen_idx])
 
                     # let it take some actions
-                    one_step(population[specimen_idx], step)
+                    population[specimen_idx].live()
 
             # execute kill actions
             drain_kill_queue(kill_queue)

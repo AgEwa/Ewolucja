@@ -2,7 +2,7 @@ import random
 from math import tanh, sin, cos
 
 import config
-from src.LocationTypes import Conversions, Coord
+from src.LocationTypes import Conversions, Coord, Direction
 from src.external import grid
 
 
@@ -11,7 +11,7 @@ def initialize_genome(neuron_link_amount: int) -> list:
     Initializes a list of genes.
     Genes are generated as 8-digit hex describing links in neural network of a Specimen
     :param neuron_link_amount: amount of links in Specimen's brain (neural network)
-    :return: list of genes specifying max energy level and specimen's neural network
+    :return: list of genes specifying specimen's neural network
     """
 
     return [generate_hex() for _ in range(neuron_link_amount)]
@@ -83,7 +83,7 @@ def drain_move_queue(p_queue: list[tuple]):
     """
     Processes and executes movements for a queue of specimens.
     Args:
-        p_queue (list[tuple]): A list of tuples, where each tuple consists of:
+        p_queue: List of tuples, where each tuple consists of:
             - Specimen: The specimen object to move.
             - list[Coord]: A path of coordinates representing movement steps.
 
@@ -119,8 +119,11 @@ def drain_move_queue(p_queue: list[tuple]):
             grid.data[specimen.location.x, specimen.location.y] = 0
             grid.data[new_location.x, new_location.y] = specimen.index
             specimen.last_movement = new_location - specimen.location
+            if new_location == specimen.location:
+                specimen.last_movement_direction = Direction.random()
+            else:
+                specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
             specimen.location = new_location
-            specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
 
     p_queue.clear()
 

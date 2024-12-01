@@ -1,64 +1,85 @@
-import math
+from math import tanh
 
 import config
-from src.population.Neuron import Neuron
+from src.population.Layer import Layer, LateralConnections, DirectConnections
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType, ActionType, NeuronType
+from src.utils.Oscilator import Oscillator
 from src.utils.utils import bin_to_signed_int
+
+sensors_num = len(list(SensorType))
+action_num = len(list(ActionType))
+
+
+def decode_connection(hex_gene: str) -> tuple[int, NeuronType, int, NeuronType, float]:
+    bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)
+
+    source_type = NeuronType.SENSOR if int(bin_gene[0]) == 0 else NeuronType.INNER
+    num_sources = sensors_num if source_type == NeuronType.SENSOR else config.MAX_NUMBER_OF_INNER_NEURONS
+    source_id = bin_to_signed_int(bin_gene[1:8]) % num_sources
+
+    target_type = NeuronType.ACTION if int(bin_gene[8]) == 0 else NeuronType.INNER
+    num_targets = action_num if target_type == NeuronType.ACTION else config.MAX_NUMBER_OF_INNER_NEURONS
+    target_id = bin_to_signed_int(bin_gene[9:16]) % num_targets
+
+    weight = bin_to_signed_int(bin_gene[16:32]) / 8000  # make it a float from around (-4,4)
+
+    return source_id, source_type, target_id, target_type, weight
 
 
 class NeuralNetwork:
-    def __init__(self, genome, specimen):
-        # reminder for Michal: we don't use SensorType and ActionType as keys, 'cause INNER neurons don't have types
-        self.neurons = {NeuronType.SENSOR: {}, NeuronType.INNER: {}, NeuronType.ACTION: {}}
+    def __init__(self, genome: list[str], specimen: 'Specimen'):
+        self.sensors = None
+        self.layers = None
         self.specimen = specimen
         self.__genome_to_neural_network(genome)
 
         return
 
-    def __genome_to_neural_network(self, genome: list):
+    def __genome_to_neural_network(self, genome: list[str]):
+        sensor_inner = {}
+        inner_inner = {}
+        inner_action = {}
+        sensor_action = {}
+        sensors_ids = set()
         for hex_gene in genome:
             assert len(hex_gene) == 8
+            source_id, source_type, target_id, target_type, weight = decode_connection(hex_gene)
 
-            # decode
-            bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)
+            match (source_type, target_type):
+                case (NeuronType.SENSOR, NeuronType.INNER):
+                    sensors_ids.add(source_id)
+                    if target_id not in sensor_inner:
+                        sensor_inner[target_id] = []
+                    sensor_inner.get(target_id).append((source_id, weight))
+                case (NeuronType.INNER, NeuronType.INNER):
+                    if target_id not in inner_inner:
+                        inner_inner[target_id] = []
+                    inner_inner.get(target_id).append((source_id, weight))
+                case (NeuronType.INNER, NeuronType.ACTION):
+                    if target_id not in inner_action:
+                        inner_action[target_id] = []
+                    inner_action.get(target_id).append((source_id, weight))
+                case (NeuronType.SENSOR, NeuronType.ACTION):
+                    sensors_ids.add(source_id)
+                    if target_id not in sensor_action:
+                        sensor_action[target_id] = []
+                    sensor_action.get(target_id).append((source_id, weight))
 
-            source_type = NeuronType.SENSOR if int(bin_gene[0]) == 0 else NeuronType.INNER
-            num_unique_sources = len(list(SensorType)) if source_type == NeuronType.SENSOR \
-                else config.MAX_NUMBER_OF_INNER_NEURONS
-            source_id = bin_to_signed_int(bin_gene[1:8]) % num_unique_sources
+        self.layers = DirectConnections(sensor_action).add_activation_func(tanh)
+        self.layers.next(
+            Layer(sensor_inner)).next(
+            LateralConnections(inner_inner)
+            .add_activation_func(tanh)).next(
+            Layer(inner_action))
+        used_sensors = self.layers.optimize(sensors_ids)
+        self.sensors = Sensor(used_sensors, self.specimen)
+        if SensorType.OSC.value in used_sensors:
+            self.specimen.oscillator = Oscillator()
+        return
 
-            target_type = NeuronType.ACTION if int(bin_gene[8]) == 0 else NeuronType.INNER
-            num_unique_targets = len(list(ActionType)) if target_type == NeuronType.ACTION \
-                else config.MAX_NUMBER_OF_INNER_NEURONS
-            target_id = bin_to_signed_int(bin_gene[9:16]) % num_unique_targets
+    def run(self) -> dict[ActionType, float]:
+        sensors_values = self.sensors.sense()
+        action_results = self.layers.run(sensors_values)
 
-            weight = bin_to_signed_int(bin_gene[16:32]) / 8000  # make it a float from around (-4,4)
-
-            # add neurons to NN
-            if source_id not in self.neurons.get(source_type):
-                if source_type == NeuronType.SENSOR:
-                    self.neurons.get(source_type)[source_id] = Sensor(SensorType(source_id), self.specimen)
-                else:
-                    self.neurons.get(source_type)[source_id] = Neuron(source_type)
-
-            if target_id not in self.neurons.get(target_type):
-                self.neurons.get(target_type)[target_id] = Neuron(target_type)
-
-            # add connection
-            self.neurons.get(source_type).get(source_id).connections.append(
-                (self.neurons.get(target_type).get(target_id), weight))
-
-    def run(self, step):
-        for _, sensor in self.neurons.get(NeuronType.SENSOR).items():
-            sensor.sense()  # sensors set their value
-            sensor.forward()  # push value to connected neurons
-
-        for _, neuron in self.neurons.get(NeuronType.INNER).items():
-            neuron.forward()  # push value to connected neurons
-
-        result = {}
-        for action_type_idx, neuron in self.neurons.get(NeuronType.ACTION).items():
-            result[ActionType(action_type_idx)] = math.tanh(neuron.value)
-
-        return result
+        return {ActionType(idx): value for idx, value in action_results.items()}

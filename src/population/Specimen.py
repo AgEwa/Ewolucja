@@ -1,4 +1,3 @@
-import math
 import random
 
 import config
@@ -7,6 +6,8 @@ from src.external import move_queue
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
 from src.utils.utils import squeeze, response_curve, probability
+
+max_long_probe_dist = 32
 
 
 def get_max_energy_level_from_genome(hex_gene: str) -> int:
@@ -38,12 +39,12 @@ class Specimen:
         self.genome = p_genome
         self.responsiveness = 0.5
         self.responsiveness_adj = response_curve(self.responsiveness)
-        self.osc_period = 34
+        self.oscillator = None
         self.long_probe_dist = config.LONG_PROBE_DISTANCE
         # Direction object with compass field
         self.last_movement_direction = Direction.random()
         # Coord object with x/y values of movement in that direction
-        self.last_movement = Conversions.direction_as_normalized_coord(self.last_movement_direction)  # Coord(0, 0)
+        self.last_movement = Coord(0, 0)
         self.challenge_bits = False
         self.max_energy = config.ENTRY_MAX_ENERGY_LEVEL
         self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
@@ -62,12 +63,16 @@ class Specimen:
         if self.energy > self.max_energy:
             self.energy = self.max_energy
 
-    def think(self, p_step: int) -> dict[ActionType, float]:
+    def live(self):
+        """ age the specimen and simulate living"""
+        self.age += 1
+        actions = self.think()
+        self.act(actions)
+
+    def think(self) -> dict[ActionType, float]:
         """ returns dict of ActionType key : float value """
 
-        assert isinstance(p_step, int) and p_step >= 0
-
-        return self.brain.run(p_step)  # what is p_step passed for? not used in run method -ag
+        return self.brain.run()
 
     def act(self, p_actions: dict[ActionType, float]) -> None:
         """ acts based on passed actions and their activation level values """
@@ -88,17 +93,18 @@ class Specimen:
 
     def _set_responsiveness(self, value):
         self.responsiveness = squeeze(value)
-        self.responsiveness_adj = response_curve(self.responsiveness)  # Przemyśleć wywalić
+        self.responsiveness_adj = response_curve(self.responsiveness)
+        # Myślę że można przerobić żeby symulować starzenie się (mniejsza responsywność z czasem)
 
     def _set_oscillator_period(self, value):
+        if not self.oscillator:
+            return  # no osc sensor
         period = squeeze(value)
-        period = 1 + int(1.5 + math.exp(7 * period))
 
-        if 2 <= period <= 2048:
-            self.osc_period = period
+        if 0.016 <= period:
+            self.oscillator.set_frequency(1 / period)
 
     def _set_longprobe_dist(self, value):
-        max_long_probe_dist = 32
         level = squeeze(value)
         level = 1 + level * max_long_probe_dist
         self.long_probe_dist = int(level)

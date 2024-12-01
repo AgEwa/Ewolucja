@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch, Mock
 
-from src.LocationTypes import Direction, Compass
+from src.LocationTypes import Compass
 from src.utils.utils import *
 
 
@@ -20,7 +20,7 @@ class TestUtils(TestCase):
         self.assertEqual(positive_int, 32767)
         self.assertEqual(negative_int, -1)
 
-    @patch('src.LocationTypes.Conversions')
+    @patch('src.utils.utils.Conversions')
     def test_drain_move_queue(self, mock_conversions):
         # given
         # mock the Grid
@@ -31,7 +31,8 @@ class TestUtils(TestCase):
         mock_grid.food_eaten_at = MagicMock()
         mock_grid.data = {}  # simulate a 2D grid with a dictionary
         # mock Conversions
-        mock_conversions.coord_as_direction.side_effect = lambda coord: Direction(Compass.CENTER)
+        direction = Direction(Compass.NORTH)
+        mock_conversions.coord_as_direction.side_effect = lambda coord: direction
         # mock specimen_1
         specimen_1 = MagicMock()
         specimen_1.location = Coord(0, 0)
@@ -57,7 +58,7 @@ class TestUtils(TestCase):
         # specimen_1 moved and updated
         self.assertEqual(specimen_1.location, Coord(2, 1))
         self.assertEqual(specimen_1.last_movement, Coord(2, 1))
-        self.assertEqual(specimen_1.last_movement_direction, Direction(Compass.CENTER))
+        self.assertEqual(specimen_1.last_movement_direction, direction)
         specimen_1.eat.assert_not_called()  # specimen_1 didn't eat
         # specimen_2 moved and updated
         self.assertEqual(specimen_2.location, Coord(1, 1))

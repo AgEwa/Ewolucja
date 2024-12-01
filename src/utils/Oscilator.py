@@ -2,7 +2,7 @@ import math
 
 
 class Oscillator:
-    def __init__(self, frequency=1.0):
+    def __init__(self, frequency=16.0):
         self.frequency = frequency
         self.time = 0.0
 
