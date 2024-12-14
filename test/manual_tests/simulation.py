@@ -125,17 +125,13 @@ def new_generation_initialize(p_genomes: list) -> None:
 
 def mutate(p_specimen: Specimen) -> None:
     """ makes given specimen mutate """
-
-    # FIXME: genome length not always right (select for duplicated genes)
-
     genome = p_specimen.genome.copy()
 
     # select random genes from genome
-    selected = [None for _ in range(config.MUTATE_N_GENES)]
-    for i in range(config.MUTATE_N_GENES):
-        selected[i] = random.choice([x for x in genome if x not in selected])
+    selected_idx = random.sample(range(len(genome)), config.MUTATE_N_GENES)
+    selected = [genome[x] for x in range(len(genome)) if x in selected_idx]
 
-    genome = [x for x in genome if x not in selected]
+    genome = [genome[x] for x in range(len(genome)) if x not in selected_idx]
 
     # mutate selected genes
     for i in range(len(selected)):
@@ -155,6 +151,7 @@ def mutate(p_specimen: Specimen) -> None:
         selected[i] = '{:08x}'.format(int(''.join(binary), 2))
 
     # update genome
+    assert all(len(gene) == 8 for gene in selected)
     genome = genome + selected
     assert len(genome) == config.GENOME_LENGTH
     p_specimen.genome = genome
@@ -180,19 +177,26 @@ def crossover_get_genomes(p_parent_a: Specimen, p_parent_b: Specimen) -> tuple[l
     a_2_a_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
                    gene_idx in a_2_a_genes_idx]
     # parent_a's genes for child_b
-    a_2_b_genes = [gene for gene in p_parent_a.genome if gene not in a_2_a_genes]
+    a_2_b_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+                   gene_idx not in a_2_a_genes_idx]
     # parent_b's genes for child_a
     b_2_a_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
                    gene_idx in b_2_a_genes_idx]
     # parent_b's genes for child_b
-    b_2_b_genes = [gene for gene in p_parent_b.genome if gene not in b_2_a_genes]
+    b_2_b_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+                   gene_idx not in b_2_a_genes_idx]
 
     key = probability(0.5)
     child_a_max_energy_value = p_parent_a.max_energy if key else p_parent_b.max_energy
     child_b_max_energy_value = p_parent_a.max_energy if not key else p_parent_b.max_energy
 
-    child_a_genome = [child_a_max_energy_value] + a_2_a_genes + b_2_a_genes
-    child_b_genome = [child_b_max_energy_value] + a_2_b_genes + b_2_b_genes
+    child_a_genome = a_2_a_genes + b_2_a_genes
+    child_b_genome = a_2_b_genes + b_2_b_genes
+    assert len(child_a_genome) == config.GENOME_LENGTH
+    assert len(child_b_genome) == config.GENOME_LENGTH
+
+    child_a_genome = [child_a_max_energy_value] + child_a_genome
+    child_b_genome = [child_b_max_energy_value] + child_b_genome
 
     return child_a_genome, child_b_genome
 
