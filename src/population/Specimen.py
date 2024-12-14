@@ -6,6 +6,7 @@ from src.external import move_queue
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
 from src.utils.utils import squeeze, response_curve, probability
+from utils.Plot import visualize_neural_network
 
 max_long_probe_dist = 32
 
@@ -48,10 +49,21 @@ class Specimen:
         self.challenge_bits = False
         self.max_energy = config.ENTRY_MAX_ENERGY_LEVEL
         self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
+        assert len(p_genome) == config.GENOME_LENGTH
         self.genome = p_genome
         self.brain = NeuralNetwork(p_genome, self)
 
         return
+
+    def can_move(self):
+        return self.energy >= config.ENERGY_PER_ONE_UNIT_OF_MOVE
+
+    def use_energy(self, value: float):
+        self.energy -= value
+
+        if self.energy < min(config.ENERGY_PER_ONE_UNIT_OF_MOVE, config.ENERGY_DECREASE_IN_TIME):
+            self.energy = 0
+            self.alive = False
 
     def eat(self):
         # try to increase max energy level
@@ -66,6 +78,11 @@ class Specimen:
     def live(self):
         """ age the specimen and simulate living"""
         self.age += 1
+        self.use_energy(config.ENERGY_DECREASE_IN_TIME)
+
+        if not self.alive:
+            return
+
         actions = self.think()
         self.act(actions)
 
@@ -196,6 +213,9 @@ class Specimen:
     @staticmethod
     def _move_random(_):
         return Conversions.direction_as_normalized_coord(Direction.random())
+
+    def plot_brain_graph(self):
+        visualize_neural_network(self.brain.layers.get_network())
 
     def __str__(self):
         return f'{self.location} {self.genome}'

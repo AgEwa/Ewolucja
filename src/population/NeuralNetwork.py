@@ -73,6 +73,7 @@ class NeuralNetwork:
             .add_activation_func(tanh)).next(
             Layer(inner_action))
         used_sensors = self.layers.optimize(sensors_ids)
+        # visualize_neural_network(self.layers.get_network())
         self.sensors = Sensor(used_sensors, self.specimen)
         if SensorType.OSC.value in used_sensors:
             self.specimen.oscillator = Oscillator()

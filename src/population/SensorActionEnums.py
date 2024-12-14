@@ -11,10 +11,6 @@ class AutoNumber(Enum):
 
 # I - data about individual specimen
 # W - data about the world
-class NeuronType(Enum):
-    SENSOR = 0
-    INNER = 1
-    ACTION = 2
 
 
 class SensorType(AutoNumber):
@@ -64,3 +60,9 @@ class ActionType(AutoNumber):
     MOVE_LEFT = ()  # W
     MOVE_RIGHT = ()  # W
     MOVE_RANDOM = ()  # W
+
+
+class NeuronType(Enum):
+    SENSOR = SensorType
+    INNER = 1
+    ACTION = ActionType

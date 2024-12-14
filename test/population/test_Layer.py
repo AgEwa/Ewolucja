@@ -1,7 +1,8 @@
 from math import tanh
 from unittest import TestCase
 
-from population.Layer import *
+from src.population.Layer import *
+from src.population.SensorActionEnums import SensorType, ActionType
 
 
 class TestHelpFunctions(TestCase):
@@ -36,6 +37,16 @@ class TestHelpFunctions(TestCase):
         # then
         self.assertFalse(reachable)
         self.assertTrue(len(links) == 0)
+
+    def test_get_node_name(self):
+        result = get_node_name(1, NeuronType.SENSOR)
+        self.assertEqual(SensorType(1), result)
+
+        result = get_node_name(1, NeuronType.INNER)
+        self.assertEqual(1, result)
+
+        result = get_node_name(1, NeuronType.ACTION)
+        self.assertEqual(ActionType(1), result)
 
 
 class TestLayer(TestCase):
@@ -200,7 +211,7 @@ class TestLateralConnections(TestCase):
         # next layer:
         # '3' = 1.0*tanh(9.25) + 1.5*tanh(2.5) = 2.4799...
         self.assertIn(3, outputs)
-        self.assertAlmostEqual(1.0*tanh(9.25) + 1.5*tanh(2.5), outputs.get(3), 4)
+        self.assertAlmostEqual(1.0 * tanh(9.25) + 1.5 * tanh(2.5), outputs.get(3), 4)
 
     def test_optimize_for_non_redundant_network(self):
         # given

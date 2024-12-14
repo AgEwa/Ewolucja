@@ -1,5 +1,9 @@
 from typing import Callable
 
+import networkx as nx
+
+from src.population.SensorActionEnums import NeuronType, ActionType, SensorType
+
 
 def execute_connections(inputs: dict[int, float], links: list[tuple[int, float]]) -> float:
     """
@@ -28,6 +32,13 @@ def is_reachable(links: list[tuple[int, float]], reached: set[int]) -> bool:
     to_remove = {link for link in links if link[0] not in reached}
     links[:] = [x for x in links if x not in to_remove]
     return len(links) > 0
+
+
+def get_node_name(neuron, neuron_type: NeuronType):
+    if neuron_type is NeuronType.INNER:
+        return neuron
+    else:
+        return neuron_type.value(neuron)
 
 
 class Layer:
@@ -119,6 +130,20 @@ class Layer:
 
         return marked_backward
 
+    def _make_network(self, graph: nx.MultiDiGraph, types: list[NeuronType], step: int):
+        for target, links in self._connections.items():
+            target_name = get_node_name(target, types[step + 1])
+            graph.add_node(target_name, n_type=types[step + 1].name)
+
+            for source, weight in links:
+                source_name = get_node_name(source, types[step])
+                graph.add_node(source_name, n_type=types[step].name)
+                graph.add_edge(source_name, target_name, weight=weight)
+
+        if self._next_layer:
+            self._next_layer._make_network(graph, types, step+1)
+        return graph
+
 
 class __ActivationLayer(Layer):
 
@@ -205,3 +230,18 @@ class DirectConnections(__ActivationLayer):
                     used.add(source)
 
         return used
+
+    def get_network(self):
+        types = [NeuronType.SENSOR, NeuronType.INNER, NeuronType.INNER, NeuronType.ACTION]
+        graph = self._next_layer._make_network(nx.MultiDiGraph(), types, 0)
+
+        for target, links in self._connections.items():
+            target_name = ActionType(target)
+            graph.add_node(target_name, n_type=NeuronType.ACTION.name)
+
+            for source, weight in links:
+                source_name = SensorType(source)
+                graph.add_node(source_name, n_type=NeuronType.SENSOR.name)
+                graph.add_edge(source_name, target_name, weight=weight)
+
+        return graph

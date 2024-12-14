@@ -100,6 +100,7 @@ def drain_move_queue(p_queue: list[tuple]):
         - Updates the specimen's state (location, energy, etc.).
         - Clears the input queue.
     """
+    count_moved = 0
     for record in p_queue:
         specimen = record[0]
         path = record[1]
@@ -111,10 +112,13 @@ def drain_move_queue(p_queue: list[tuple]):
             for step in path:
                 assert isinstance(step, Coord)
                 if grid.in_bounds(new_location + step) and grid.is_empty_at(new_location + step):
+                    if not specimen.can_move():
+                        break
                     new_location += step
                     if grid.is_food_at(new_location):
                         specimen.eat()
                         grid.food_eaten_at(new_location)  # decreases amount of food at food source
+                    specimen.use_energy(config.ENERGY_PER_ONE_UNIT_OF_MOVE)
 
             grid.data[specimen.location.x, specimen.location.y] = 0
             grid.data[new_location.x, new_location.y] = specimen.index
@@ -123,6 +127,7 @@ def drain_move_queue(p_queue: list[tuple]):
                 specimen.last_movement_direction = Direction.random()
             else:
                 specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
+                count_moved += 1
             specimen.location = new_location
 
     p_queue.clear()
