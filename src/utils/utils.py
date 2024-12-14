@@ -2,29 +2,27 @@ import random
 from math import tanh, sin, cos
 
 import config
-from src.LocationTypes import Conversions, Coord
+from src.LocationTypes import Conversions, Coord, Direction
 from src.external import grid
 
 
 def initialize_genome(neuron_link_amount: int) -> list:
     """
     Initializes a list of genes.
-    First gene is a 2-digit hex set to ENTRY_MAX_ENERGY_LEVEL.
-    Other genes are generated as 8-digit hex describing links in neural network of a Specimen
+    Genes are generated as 8-digit hex describing links in neural network of a Specimen
     :param neuron_link_amount: amount of links in Specimen's brain (neural network)
-    :return: list of genes specifying max energy level and specimen's neural network
+    :return: list of genes specifying specimen's neural network
     """
 
     return [generate_hex() for _ in range(neuron_link_amount)]
 
 
-def generate_hex():
+def generate_hex() -> str:
     """
-        Generates a random 8-digit hexadecimal number.
-
-        Returns:
-            str: An 8-char string representing a hexadecimal number.
-        """
+    Generates a random 8-digit hexadecimal number.
+    Returns:
+        str: An 8-char string representing a hexadecimal number.
+    """
     return '{:08x}'.format(random.randint(0, 0xFFFFFFFF))
 
 
@@ -47,7 +45,6 @@ def squeeze(p_x: float) -> float:
 
 def response_curve(p_r: float) -> float:
     k = config.RESPONSIVENESS_CURVE_K_FACTOR
-
     return (p_r - 2) ** (-2 * k) - 2 ** (-2 * k) * (1 - p_r)
 
 
@@ -59,9 +56,7 @@ def rotate(p_a, p_alpha, p_c=(0, 0)):
     x = p_a[0]
     y = p_a[1]
     assert isinstance(x, (int, float)) and isinstance(y, (int, float))
-
     assert isinstance(p_alpha, (int, float))
-
     assert isinstance(p_c, tuple) and len(p_c) == 2
     a = p_c[0]
     b = p_c[1]
@@ -84,28 +79,52 @@ def drain_kill_queue(p_queue: list):
     pass
 
 
-def drain_move_queue(p_queue: list) -> None:
-    """ allows every specimen to move """
+def drain_move_queue(p_queue: list[tuple]):
+    """
+    Processes and executes movements for a queue of specimens.
+    Args:
+        p_queue: List of tuples, where each tuple consists of:
+            - Specimen: The specimen object to move.
+            - list[Coord]: A path of coordinates representing movement steps.
 
+    Method iterates through each specimen and its path in the queue.
+    If the specimen is alive:
+        - Attempts to move the specimen along the path, step by step.
+        - Checks if each step leads to an empty grid cell; if so, moves there.
+        - If the new location contains food, the specimen eats it, and the food is removed from the grid.
+        - Updates the specimen's last movement, location, and movement direction.
+    The queue is being cleared after processing movements for all specimens.
+
+    Side Effects:
+        - Modifies the `grid` to reflect the specimen's movement and food consumption.
+        - Updates the specimen's state (location, energy, etc.).
+        - Clears the input queue.
+    """
     for record in p_queue:
-        # retrieve specimen
         specimen = record[0]
-        # retrieve desired location
-        new_location = record[1]
-        # if specimen is alive and desired location is available
-        if specimen.alive and grid.is_empty_at(new_location):
-            # free previously occupied space
+        path = record[1]
+        assert isinstance(path, list)
+        new_location = specimen.location
+
+        if specimen.alive:
+
+            for step in path:
+                assert isinstance(step, Coord)
+                if grid.in_bounds(new_location + step) and grid.is_empty_at(new_location + step):
+                    new_location += step
+                    if grid.is_food_at(new_location):
+                        specimen.eat()
+                        grid.food_eaten_at(new_location)  # decreases amount of food at food source
+
             grid.data[specimen.location.x, specimen.location.y] = 0
-            # take new location
             grid.data[new_location.x, new_location.y] = specimen.index
-            # remember last movement
             specimen.last_movement = new_location - specimen.location
-            # remember last movement direction
-            specimen.last_movement_direction = Conversions.coord_as_direction(specimen.last_movement)
-            # set new location for specimen
+            if new_location == specimen.location:
+                specimen.last_movement_direction = Direction.random()
+            else:
+                specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
             specimen.location = new_location
 
-    # clear move queue
     p_queue.clear()
 
     return

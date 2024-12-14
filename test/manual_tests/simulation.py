@@ -6,11 +6,9 @@ import imageio.v2 as imageio
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from fontTools.misc.psLib import ps_special
-from select import select
 
 import config
-from src.LocationTypes import Coord, Compass, Direction
+from src.LocationTypes import Coord
 from src.external import grid, population, move_queue, kill_queue
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.Specimen import Specimen
@@ -62,11 +60,30 @@ def to_gif(p_target_name: str, p_filenames: list[str]) -> None:
     return
 
 
-def initialize() -> None:
+def initialize_world():
+    """
+    Initializes the world by modifying global grid to place barriers and food sources.
+    """
+    # assert that grid is empty
+    assert (grid.data == Grid.EMPTY).all()
+    assert not grid.food_data
+    # list of all indexes available in the grid
+    all_places = [(row, col) for row in range(grid.height) for col in range(grid.width)]
+    # select indexes for barriers and update grid object
+    bar_placement = random.sample(all_places, config.BARRIERS_NUMBER)
+    grid.set_barriers_at_indexes(bar_placement)
+    # list of available indexes left
+    places_left = list(set(all_places).difference(bar_placement))
+    # select indexes for food sources and update grid object
+    food_placement = random.sample(places_left, config.FOOD_SOURCES_NUMBER)
+    grid.set_food_sources_at_indexes(food_placement)
+
+
+def initialize_population() -> None:
     """ initializes population with randomly placed specimen across the grid """
 
     # look for empty spaces
-    initials = np.argwhere(np.isin(grid.data, Grid.EMPTY))
+    initials = np.argwhere(grid.data == Grid.EMPTY)
     # randomly select sufficient amount of spaces for population
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
 
@@ -89,7 +106,7 @@ def new_generation_initialize(p_genomes: list) -> None:
     population.append(None)
 
     # look for empty spaces
-    initials = np.argwhere(np.isin(grid.data, Grid.EMPTY))
+    initials = np.argwhere(grid.data == Grid.EMPTY)
     # randomly select sufficient amount of spaces for population
     selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
 
@@ -106,34 +123,15 @@ def new_generation_initialize(p_genomes: list) -> None:
     return
 
 
-def one_step(p_specimen: Specimen, p_step: int) -> None:
-    """ supports single simulation step for specified specimen """
-
-    assert isinstance(p_specimen, Specimen)
-    assert isinstance(p_step, int) and p_step >= 0
-
-    # make specimen older by one unit
-    p_specimen.age += 1
-    # retrieve actions specimen would execute
-    actions = p_specimen.think(p_step)
-    # evaluate previously retrieved actions
-    p_specimen.act(actions)
-    p_specimen.energy -= config.ENERGY_PER_ONE_UNIT_OF_MOVE
-
-    return
-
-
 def mutate(p_specimen: Specimen) -> None:
     """ makes given specimen mutate """
-
     genome = p_specimen.genome.copy()
 
     # select random genes from genome
-    selected = [None for _ in range(config.MUTATE_N_GENES)]
-    for i in range(config.MUTATE_N_GENES):
-        selected[i] = random.choice([x for x in genome if x not in selected])
+    selected_idx = random.sample(range(len(genome)), config.MUTATE_N_GENES)
+    selected = [genome[x] for x in range(len(genome)) if x in selected_idx]
 
-    genome = [x for x in genome if x not in selected]
+    genome = [genome[x] for x in range(len(genome)) if x not in selected_idx]
 
     # mutate selected genes
     for i in range(len(selected)):
@@ -153,8 +151,9 @@ def mutate(p_specimen: Specimen) -> None:
         selected[i] = '{:08x}'.format(int(''.join(binary), 2))
 
     # update genome
+    assert all(len(gene) == 8 for gene in selected)
     genome = genome + selected
-
+    assert len(genome) == config.GENOME_LENGTH
     p_specimen.genome = genome
     p_specimen.brain = NeuralNetwork(genome, p_specimen)
 
@@ -178,19 +177,26 @@ def crossover_get_genomes(p_parent_a: Specimen, p_parent_b: Specimen) -> tuple[l
     a_2_a_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
                    gene_idx in a_2_a_genes_idx]
     # parent_a's genes for child_b
-    a_2_b_genes = [gene for gene in p_parent_a.genome if gene not in a_2_a_genes]
+    a_2_b_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+                   gene_idx not in a_2_a_genes_idx]
     # parent_b's genes for child_a
     b_2_a_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
                    gene_idx in b_2_a_genes_idx]
     # parent_b's genes for child_b
-    b_2_b_genes = [gene for gene in p_parent_b.genome if gene not in b_2_a_genes]
+    b_2_b_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+                   gene_idx not in b_2_a_genes_idx]
 
     key = probability(0.5)
     child_a_max_energy_value = p_parent_a.max_energy if key else p_parent_b.max_energy
     child_b_max_energy_value = p_parent_a.max_energy if not key else p_parent_b.max_energy
 
-    child_a_genome = [child_a_max_energy_value] + a_2_a_genes + b_2_a_genes
-    child_b_genome = [child_b_max_energy_value] + a_2_b_genes + b_2_b_genes
+    child_a_genome = a_2_a_genes + b_2_a_genes
+    child_b_genome = a_2_b_genes + b_2_b_genes
+    assert len(child_a_genome) == config.GENOME_LENGTH
+    assert len(child_b_genome) == config.GENOME_LENGTH
+
+    child_a_genome = [child_a_max_energy_value] + child_a_genome
+    child_b_genome = [child_b_max_energy_value] + child_b_genome
 
     return child_a_genome, child_b_genome
 
@@ -207,7 +213,8 @@ def simulation() -> None:
     filenames = []
 
     # population of specimens
-    initialize()
+    initialize_world()
+    initialize_population()
 
     # simulation loop
     for generation in range(config.NUMBER_OF_GENERATIONS):
@@ -229,7 +236,7 @@ def simulation() -> None:
                         mutate(population[specimen_idx])
 
                     # let it take some actions
-                    one_step(population[specimen_idx], step)
+                    population[specimen_idx].live()
 
             # execute kill actions
             drain_kill_queue(kill_queue)

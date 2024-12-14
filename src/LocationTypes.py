@@ -66,7 +66,7 @@ class Direction:
 
     @staticmethod
     def random() -> 'Direction':
-        return Direction(Compass.NORTH).rotate(np.random.choice(8))
+        return Direction(Compass.NORTH).rotate(np.random.choice(8))  # never center
 
     def __str__(self):
         return f'Direction({self.compass})'
