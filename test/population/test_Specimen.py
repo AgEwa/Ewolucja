@@ -1,4 +1,3 @@
-import math
 from unittest import TestCase
 from unittest.mock import patch, MagicMock, Mock
 
@@ -52,7 +51,7 @@ class TestSpecimen(TestCase):
             ActionType.SET_LONGPROBE_DIST: value
         }
         expected_responsiveness = squeeze(value)
-        expected_period = 1 + int(1.5 + math.exp(7 * squeeze(value)))
+        expected_period = squeeze(value)
         expected_dist = 1 + squeeze(value) * 32
         mock_oscillator = Mock()  # Create a mock for the oscillator
         self.specimen.oscillator = mock_oscillator  # Attach the oscillator mock to the specimen
@@ -62,7 +61,7 @@ class TestSpecimen(TestCase):
         # then
         self.assertEqual(expected_responsiveness, self.specimen.responsiveness)
         self.assertEqual(response_curve(expected_responsiveness), self.specimen.responsiveness_adj)
-        mock_oscillator.set_frequency.assert_called_once_with(1/expected_period)
+        mock_oscillator.set_frequency.assert_called_once_with(1 / expected_period)
         self.assertEqual(int(expected_dist), self.specimen.long_probe_dist)
 
     def test_act_for_phermone(self):

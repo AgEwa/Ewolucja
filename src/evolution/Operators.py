@@ -106,32 +106,6 @@ def reproduce(probabilities, selected_idx):
     return genomes_for_new_population
 
 
-def evaluate_and_select_2():
-    # initiate storage for energy
-    current_energy = np.zeros(config.POPULATION_SIZE)
-    maximum_energy = np.zeros(config.POPULATION_SIZE)
-    # fill with values
-    for i in range(config.POPULATION_SIZE):
-        current_energy[i] = population[i + 1].energy
-        maximum_energy[i] = population[i + 1].max_energy
-    # selection
-    # calculate weighted average
-    adaptation_function_value = current_energy * 0.25 + maximum_energy * 0.75
-    # calculate values for sigmoid function
-    # multiply by 0 for those with 0 current energy, so their probability of selection is 0
-    pre_sigmoid = np.exp(adaptation_function_value) * np.where(current_energy == 0, 0, 1)
-    # calculate probabilities
-    probabilities = pre_sigmoid / np.sum(pre_sigmoid)
-    # acquire random indexes according to probabilities calculated step above
-    selected_idx = np.random.choice(range(1, config.POPULATION_SIZE + 1), size=config.SELECT_N_SPECIMENS,
-                                    replace=False,
-                                    p=probabilities)
-    pre_sigmoid = np.exp(adaptation_function_value[selected_idx - 1])
-    print(adaptation_function_value[selected_idx - 1])
-    probabilities = pre_sigmoid / np.sum(pre_sigmoid)
-    return probabilities, selected_idx
-
-
 def evaluate_and_select():
     # initiate storage for energy
     current_energy = np.zeros(config.POPULATION_SIZE)
@@ -154,16 +128,17 @@ def select_best(adaptation_values: list, energy: list):
     non_zero = np.argwhere(energy).flatten()
     if len(non_zero) < config.SELECT_N_SPECIMENS:
         missing = config.SELECT_N_SPECIMENS - len(non_zero)
-        print(missing, " missing in selection")
+        print("mising: ", missing)
         return np.concatenate((non_zero, np.argsort(adaptation_values)[-missing:]))
 
-    values = adaptation_values.copy()
-    values = np.array(values * np.where(energy == 0, 0, 1))
-    threshold = 0.67 * np.mean(values[np.argsort(values)[-3:]])
+    values = [adaptation_values[i] if i in non_zero else 0 for i in range(len(adaptation_values))]
+    values = np.array(values)
+    top = min(3, config.SELECT_N_SPECIMENS)
+    threshold = 0.67 * np.mean(values[np.argsort(values)[-top:]])
     selected_idx = np.argwhere(values > threshold).flatten()
 
     if len(selected_idx) < config.SELECT_N_SPECIMENS:
         threshold = values[np.argsort(values)[-config.SELECT_N_SPECIMENS]]
-        selected_idx = np.argwhere(adaptation_values >= threshold).flatten()
+        selected_idx = np.argwhere(values >= threshold).flatten()
 
     return selected_idx

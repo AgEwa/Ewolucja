@@ -49,7 +49,6 @@ class Specimen:
         self.challenge_bits = False
         self.max_energy = config.ENTRY_MAX_ENERGY_LEVEL
         self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
-        assert len(p_genome) == config.GENOME_LENGTH
         self.genome = p_genome
         self.brain = NeuralNetwork(p_genome, self)
 

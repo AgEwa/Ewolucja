@@ -2,7 +2,7 @@ import uuid
 
 from src.LocationTypes import Coord
 from src.evolution.Operators import *
-from src.external import grid, population, move_queue, kill_queue
+from src.external import move_queue, kill_queue
 from src.population.Specimen import Specimen
 from src.utils.Plot import *
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue, probability

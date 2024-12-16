@@ -1,5 +1,6 @@
 import unittest
 
+from evolution.test_Operators import TestOperators
 from population.test_Layer import TestLayer, TestLateralConnections, TestHelpFunctions, TestDirectConnections
 from population.test_NeuralNetwork import TestNeuralNetwork, TestDecodeConnection
 from population.test_Sensor import TestSensor
@@ -22,6 +23,7 @@ def run_all_tests():
     suite.addTest(loader.loadTestsFromTestCase(TestDirectConnections))
     suite.addTest(loader.loadTestsFromTestCase(TestDecodeConnection))
     suite.addTest(loader.loadTestsFromTestCase(TestNeuralNetwork))
+    suite.addTest(loader.loadTestsFromTestCase(TestOperators))
 
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
