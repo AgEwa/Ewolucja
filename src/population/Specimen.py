@@ -1,8 +1,8 @@
 import random
 
 import config
-from src.LocationTypes import Direction, Conversions, Coord
-from src.external import move_queue
+from src.LocationTypes import Direction, Conversions, Coord, Compass
+from src.external import move_queue, grid
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
 from src.utils.utils import squeeze, response_curve, probability
@@ -110,15 +110,12 @@ class Specimen:
         self.long_probe_dist = int(level)
 
     def _emit_pheromone(self, value):
-        emit_threshold = 0.5
-
+        emit_threshold = 0.1
         level = squeeze(value)
         level *= self.responsiveness_adj
 
-        if level > emit_threshold and probability(level):
-            # TODO: implement pheromones
-
-            pass
+        if level > emit_threshold and probability(level) or config.FORCE_EMISSION_TEST:
+            grid.pheromones.emit(self.location.x, self.location.y, self.last_movement_direction)
 
     def _kill(self, value):
         kill_threshold = 0.5

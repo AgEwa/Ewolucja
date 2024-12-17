@@ -44,7 +44,7 @@ def initialize_population():
 def one_step(p_specimen, step):
     """Advances a specimen by one step in the simulation."""
     p_specimen.age += 1
-    actions = p_specimen.think(step)
+    actions = p_specimen.think()
     p_specimen.act(actions)
 
 
@@ -71,9 +71,12 @@ def simulation():
 
             drain_kill_queue(kill_queue)
             drain_move_queue(move_queue)
+            #decreases and spreads after each step
+            grid.pheromones.spread()
 
             print(grid.data)
             print(grid.food_data)
+            print(grid.pheromones.grid)
 
         print()
 

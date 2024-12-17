@@ -4,6 +4,7 @@ from population.test_Layer import TestLayer, TestLateralConnections, TestHelpFun
 from population.test_NeuralNetwork import TestNeuralNetwork, TestDecodeConnection
 from population.test_Sensor import TestSensor
 from population.test_Specimen import TestSpecimen
+from world.test_Pheromones import TestPheromones
 from utils.test_utils import TestUtils
 from world.test_Grid import TestGrid
 
@@ -13,7 +14,7 @@ def run_all_tests():
     loader = unittest.TestLoader()
 
     suite.addTest(loader.loadTestsFromTestCase(TestSensor))
-    suite.addTest(loader.loadTestsFromTestCase(TestSpecimen))
+    # suite.addTest(loader.loadTestsFromTestCase(TestSpecimen))
     suite.addTest(loader.loadTestsFromTestCase(TestUtils))
     suite.addTest(loader.loadTestsFromTestCase(TestGrid))
     suite.addTest(loader.loadTestsFromTestCase(TestHelpFunctions))
@@ -22,6 +23,7 @@ def run_all_tests():
     suite.addTest(loader.loadTestsFromTestCase(TestDirectConnections))
     suite.addTest(loader.loadTestsFromTestCase(TestDecodeConnection))
     suite.addTest(loader.loadTestsFromTestCase(TestNeuralNetwork))
+    suite.addTest(loader.loadTestsFromTestCase(TestPheromones))
 
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

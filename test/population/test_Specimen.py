@@ -1,9 +1,13 @@
 import math
+from tkinter.constants import CENTER
 from unittest import TestCase
 from unittest.mock import patch, MagicMock, Mock
 
+import numpy as np
+
 import config
 from src.LocationTypes import Coord, Direction, Compass
+from src.external import grid
 from src.population.SensorActionEnums import ActionType
 from src.population.Specimen import Specimen
 from src.utils.utils import squeeze, response_curve
@@ -65,14 +69,15 @@ class TestSpecimen(TestCase):
         mock_oscillator.set_frequency.assert_called_once_with(1/expected_period)
         self.assertEqual(int(expected_dist), self.specimen.long_probe_dist)
 
-    def test_act_for_phermone(self):
+    def test_act_for_pheromone(self):
         # given
-        value = 0.5
+        value = 0.6
         p_actions = {ActionType.EMIT_PHEROMONE: value}
         # when
         self.specimen.act(p_actions)
         # then
-        pass
+        # test was based on visualising results -  To improve
+        # print(grid.pheromones.grid)
 
     @patch('src.LocationTypes.Conversions.direction_as_normalized_coord')
     @patch('src.population.Specimen.random.choice')

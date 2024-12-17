@@ -1,8 +1,6 @@
 from math import tanh
 from unittest import TestCase
-
-from population.Layer import *
-
+from src.population.Layer import *
 
 class TestHelpFunctions(TestCase):
     def test_execute_connections(self):

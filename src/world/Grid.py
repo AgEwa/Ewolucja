@@ -1,9 +1,13 @@
+import math
 import random
 
+import scipy
 import numpy as np
 
 import config
-from src.LocationTypes import Coord
+# Grid.py
+
+from src.LocationTypes import Coord, Conversions, Direction, Compass
 
 
 class Grid:
@@ -19,7 +23,7 @@ class Grid:
 
         self.data = np.zeros((size_x, size_y), dtype=np.int16)
         self.food_data = {}
-
+        self.pheromones = self.Pheromones(size_x, size_y)
         return
 
     def reset(self):
@@ -99,4 +103,110 @@ class Grid:
 
     def is_food_at_xy(self, x, y):
         return (x, y) in self.food_data and self.food_data.get((x, y)) > 0
+
+    class Pheromones:
+        """
+        Pheromone layer for the grid.
+        """
+
+        def __init__(self, width: int, height: int):
+            self.width = width
+            self.height = height
+            self.grid = np.zeros((width, height), dtype=np.float64)
+
+        def emit(self, x: int, y: int, direction: Direction):
+            strength = config.PHEROMONE_STRENGTH
+            # print(
+                # f"[DEBUG] Emit pheromones called with x={x}, y={y}, direction={direction.compass}, strength={strength}")
+
+            # This adresses the problem of specimen not moving?? (no pheromones emitted then)
+            if direction.compass == Compass.CENTER:
+                # print("osobnik nie poruszył się, nie nastapila emisja")
+                return
+
+            else:
+                backward_direction = direction.rotate_180_deg()
+                backward_coord = Conversions.direction_as_normalized_coord(backward_direction)
+
+                # print(f"[DEBUG] Backward direction: {backward_direction.compass}, Backward coord: {backward_coord}")
+
+                for dx in range(-3, 4):
+                    for dy in range(-3, 4):
+                        nx, ny = x + dx, y + dy
+                        if 0 < nx < self.width-1 and 0 < ny < self.height-1: # Pheromones not emitted at and out of the bounds
+                            distance = math.sqrt(dx ** 2 + dy ** 2)
+                            if distance > 3:
+                                continue
+                            # The dot product, due to orthogonality, disrupts emission in cells to the left and right,
+                            # so we include some emission slightly to the side and in front of the specimen.
+                            dx_norm, dy_norm = dx / (distance + 1e-6), dy / (distance + 1e-6)
+                            backward_factor = max(0.01, np.dot([dx_norm, dy_norm], [backward_coord.x, backward_coord.y]))
+                            intensity = strength * backward_factor / (1 + distance)
+
+                            # print(f"[DEBUG] Emitting at ({nx}, {ny}) with intensity {intensity}")
+                            self.grid[nx, ny] += intensity
+
+        def read(self, x: int, y: int, direction: Direction, axis: str) -> float:
+            """
+            Reads pheromone values in a specific axis: forward, left, or right.
+            Args:
+                x (int): The X-coordinate of the sensor.
+                y (int): The Y-coordinate of the sensor.
+                direction (Direction): The movement direction of the sensor.
+                axis (str): The axis to read ("fwd" - forward, "r" - right, "l" - left).
+            Returns:
+                float: The average pheromone value in the specified axis.
+            """
+            pheromone_sum = 0
+            count = 0
+
+            base_coord = Conversions.direction_as_normalized_coord(direction)
+            if axis == "fwd":
+                modifier = base_coord
+            elif axis == "r":
+                modifier = Coord(-base_coord.y, base_coord.x)
+            elif axis == "l":
+                modifier = Coord(base_coord.y, -base_coord.x)
+            else:
+                raise ValueError("Invalid axis. Use 'fwd', 'r', or 'l'")
+
+            # Read pheromones in the specified direction
+            for i in range(1, 4):
+                nx, ny = x + i * modifier.x, y + i * modifier.y
+                if 0 < nx < self.width-1 and 0 < ny < self.height-1:
+                    pheromone_sum += self.grid[nx, ny]
+                    count += 1
+
+            return pheromone_sum / max(1, count)
+
+        def spread(self):
+            """
+            Pheromone spread and decay using convolution.
+            """
+            diffusion_rate = config.PHEROMONE_DIFFUSION_RATE
+            decay_rate = config.PHEROMONE_DECAY_RATE
+
+            self.grid *= (1 - decay_rate)
+
+            diffusion_kernel = np.array([[0, diffusion_rate / 4, 0],
+                                         [diffusion_rate / 4, 1 - diffusion_rate, diffusion_rate / 4],
+                                         [0, diffusion_rate / 4, 0]])
+
+            self.grid = scipy.ndimage.convolve(self.grid, diffusion_kernel, mode='constant', cval=0.0)
+
+            self.grid[0, :] = 0
+            self.grid[-1, :] = 0
+            self.grid[:, 0] = 0
+            self.grid[:, -1] = 0
+
+        # def get_at(self, x: int, y: int) -> float:
+        #     """
+        #     Retrieves the pheromone value at a SPECIFIC LOCATION.
+        #     Args:
+        #         x (int): X-coordinate.
+        #         y (int): Y-coordinate.
+        #     Returns:
+        #         float: Pheromone value.
+        #     """
+        #     return self.grid[x, y] if 0 <= x < self.width and 0 <= y < self.height else 0
 
