@@ -16,8 +16,8 @@ class TestSpecimen(TestCase):
         self.location = Coord(0, 0)
         self.genome = ["a3f", "b2e", "c1d"]
         self.mock_brain = MagicMock()
-        mock_neural_network.return_value = self.mock_brain
         self.specimen = Specimen(self.index, self.location, self.genome.copy())
+        mock_neural_network.return_value = self.mock_brain
 
     def test_initialization(self):
         self.assertTrue(self.specimen.alive)
@@ -64,14 +64,16 @@ class TestSpecimen(TestCase):
         mock_oscillator.set_frequency.assert_called_once_with(1 / expected_period)
         self.assertEqual(int(expected_dist), self.specimen.long_probe_dist)
 
-    def test_act_for_phermone(self):
+    @patch('src.population.Specimen.grid.Pheromones.emit')
+    def test_act_for_pheromone(self, mock_emit):
         # given
-        value = 0.5
+        config.FORCE_EMISSION_TEST = True
+        value = 0.6
         p_actions = {ActionType.EMIT_PHEROMONE: value}
         # when
         self.specimen.act(p_actions)
         # then
-        pass
+        mock_emit.assert_called_once()
 
     @patch('src.LocationTypes.Conversions.direction_as_normalized_coord')
     @patch('src.population.Specimen.random.choice')

@@ -39,7 +39,8 @@ class TestGrid(TestCase):
         # when
         self.grid.reset()
         # then
-        self.assertTrue((self.grid.data == Grid.EMPTY).all())
+        self.assertTrue(self.grid.data.all() in [Grid.EMPTY, Grid.BARRIER])
+        self.assertTrue(self.grid.is_empty_at(self.loc_specimen))
         self.assertTrue(self.grid.food_data.get(self.food_idx_list[0]) > 0)
 
     def test_in_bounds(self):

@@ -1,8 +1,10 @@
+import time
 import uuid
+from multiprocessing import Process, set_start_method
 
 from src.LocationTypes import Coord
 from src.evolution.Operators import *
-from src.external import move_queue, kill_queue
+from src.external import move_queue, kill_queue, grid
 from src.population.Specimen import Specimen
 from src.utils.Plot import *
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue, probability
@@ -84,16 +86,24 @@ def simulation() -> None:
 
     # names of frames
     filenames = []
-
+    plot_processes = []
+    gif_processes = []
     # population of specimens
     initialize_world()
     initialize_population()
 
     # simulation loop
     for generation in range(config.NUMBER_OF_GENERATIONS):
+        logging.info(f"Gen {generation} started.")
+        gen_start = time.time()
         # add population state frame before actions
         if config.SAVE_ANIMATION:
-            filenames.append(make_plot(grid.data, folder_name, f'gif_{uid}_gen_{generation}_frame_0'))
+            save_path_name = os.path.join(folder_name, f'gif_{uid}_gen_{generation}_frame_0.png')
+            p = Process(target=plot_world,
+                        args=(grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
+            p.start()
+            plot_processes.append(p)
+            filenames.append(save_path_name)
         # every generation
         for step in range(config.STEPS_PER_GENERATION):
             # has some time (in form of steps) to do something
@@ -114,31 +124,54 @@ def simulation() -> None:
             drain_kill_queue(kill_queue)
             # execute move actions
             drain_move_queue(move_queue)
+            # spread pheromones
+            grid.pheromones.spread()
 
             # add population state frame after one generation actions
             if config.SAVE_ANIMATION:
-                filenames.append(make_plot(grid.data, folder_name, f'gif_{uid}_gen_{generation}_frame_{step + 1}'))
+                save_path_name = os.path.join(folder_name, f'gif_{uid}_gen_{generation}_frame_{step + 1}.png')
+                p = Process(target=plot_world,
+                            args=(grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
+                p.start()
+                plot_processes.append(p)
+                filenames.append(save_path_name)
 
         probabilities, selected_idx = evaluate_and_select()
         genomes_for_new_population = reproduce(probabilities, selected_idx)
-
+        wait_start = time.time()
+        for p in plot_processes:
+            p.join()
+        logging.info(f"Waited {time.time() - wait_start}s for plot processes.")
+        plot_processes.clear()
         # compose frames into animation
         if config.SAVE_ANIMATION:
-            to_gif(os.path.join(folder_name, f'gif_{uid}_gen_{generation}'), filenames)
-            for filename in filenames:
-                os.remove(filename)
-            filenames.clear()
+            p = Process(target=to_gif,
+                        args=(os.path.join(folder_name, f'gif_{uid}_gen_{generation}'), filenames.copy()))
+            p.start()
+            gif_processes.append(p)
+
+        filenames.clear()
 
         new_generation_initialize(genomes_for_new_population)
+        logging.info(f"Gen {generation} took {time.time() - gen_start}s.")
+
+    wait_start = time.time()
+    for p in gif_processes:
+        p.join()
+    logging.info(f"Waited {time.time() - wait_start}s for gif processes.")
 
 
 def main():
     """ starting point of application """
-
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    start = time.time()
     simulation()
+    logging.info(f"Simulation took {time.time() - start}s.")
 
     return
 
 
 if __name__ == '__main__':
+    set_start_method('spawn')
     main()

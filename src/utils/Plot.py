@@ -2,37 +2,92 @@ import os
 
 import imageio.v2 as imageio
 import matplotlib as mpl
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
+import config
+
+type_to_color = {
+    "SENSOR": "lightgreen",
+    "INNER": "lightblue",
+    "ACTION": "orange",
+}
+BARRIER_COLOR = 'black'
+SPECIMEN_COLOR = {True: 'red', False: "yellow"}
+food_cmap = plt.cm.Greens
+norm = mcolors.Normalize(vmin=0, vmax=config.FOOD_PER_SOURCE_MAX)
+
 
 def visualize_neural_network(graph: nx.MultiDiGraph):
-    type_to_color = {
-        "SENSOR": "lightgreen",
-        "INNER": "lightblue",
-        "ACTION": "orange",
-    }
     node_colors = [type_to_color.get(data['n_type']) for node, data in graph.nodes(data=True)]
     edge_labels = nx.get_edge_attributes(graph, 'weight')
     edge_colors = ["red" if data['weight'] >= 0 else "blue" for _, _, data in graph.edges(data=True)]
-    pos = nx.multipartite_layout(graph, subset_key="n_type")
+    # positions of nodes in layers
+    pos = nx.multipartite_layout(graph, subset_key="n_type", scale=-1)
 
     plt.figure(figsize=(12, 8))
 
     nx.draw_networkx_nodes(graph, pos, node_color=node_colors, node_size=700)
     nx.draw_networkx_edges(graph, pos, arrowstyle="->", arrowsize=20, edge_color=edge_colors)
     nx.draw_networkx_labels(graph, pos, font_size=10, font_color="black", font_weight="bold")
-
-    # Draw edge labels for weights
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_size=8, font_color="red")
 
-    plt.title("Neural Network Visualization")
     plt.axis("off")
     plt.show()
+    plt.close()
 
 
-def make_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -> str:
+def plot_world(barriers, food_data, pop, save_path_name: str):
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.clear()
+    ax.set_xticks(np.arange(-0.5, config.WIDTH, 1))
+    ax.set_yticks(np.arange(-0.5, config.HEIGHT, 1))
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.grid(color='gray', linestyle='-', linewidth=0.5)
+    ax.set_xlim(-0.5, config.WIDTH - 0.5)
+    ax.set_ylim(-0.5, config.HEIGHT - 0.5)
+    ax.margins(0)
+
+    for loc in barriers:
+        ax.add_patch(plt.Rectangle((loc[0] - 0.5, loc[1] - 0.5), 1, 1, color=BARRIER_COLOR))
+
+    for loc in food_data:
+        food_level = food_data.get(loc)
+        food_color = food_cmap(norm(food_level))
+        ax.add_patch(plt.Rectangle((loc[0] - 0.5, loc[1] - 0.5), 1, 1, color=food_color))
+
+    for specimen in pop[1:]:
+        ax.plot(specimen.location.x, specimen.location.y, 'o', color=SPECIMEN_COLOR.get(specimen.alive))
+
+    plt.tight_layout()
+    plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    plt.savefig(save_path_name)
+    plt.close()
+
+    return
+
+
+def to_gif(p_target_name: str, p_filenames: list[str]) -> None:
+    """ composes pictures of specified filenames into one animated .gif file """
+
+    assert isinstance(p_target_name, str)
+    assert isinstance(p_filenames, list)
+    for filename in p_filenames:
+        assert isinstance(filename, str)
+
+    with imageio.get_writer(f'{p_target_name}.gif', mode='I') as writer:
+        for filename in p_filenames:
+            image = imageio.imread(filename)
+            writer.append_data(image)
+            os.remove(filename)
+
+    return
+
+
+def make_simple_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -> str:
     """ creates color map of passed matrix and saves it in specified folder with specified name """
 
     assert isinstance(p_matrix, np.ndarray)
@@ -58,19 +113,3 @@ def make_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -> str:
     plt.close()
 
     return name
-
-
-def to_gif(p_target_name: str, p_filenames: list[str]) -> None:
-    """ composes pictures of specified filenames into one animated .gif file """
-
-    assert isinstance(p_target_name, str)
-    assert isinstance(p_filenames, list)
-    for filename in p_filenames:
-        assert isinstance(filename, str)
-
-    with imageio.get_writer(f'{p_target_name}.gif', mode='I') as writer:
-        for filename in p_filenames:
-            image = imageio.imread(filename)
-            writer.append_data(image)
-
-    return

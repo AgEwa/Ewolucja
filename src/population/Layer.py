@@ -38,7 +38,7 @@ def get_node_name(neuron, neuron_type: NeuronType):
     if neuron_type is NeuronType.INNER:
         return neuron
     else:
-        return neuron_type.value(neuron)
+        return neuron_type.value(neuron).name
 
 
 class Layer:
@@ -141,7 +141,7 @@ class Layer:
                 graph.add_edge(source_name, target_name, weight=weight)
 
         if self._next_layer:
-            self._next_layer._make_network(graph, types, step+1)
+            self._next_layer._make_network(graph, types, step + 1)
         return graph
 
 
@@ -187,6 +187,42 @@ class LateralConnections(__ActivationLayer):
         self._outputs = inputs.copy()
 
         super().process(self._outputs)
+
+    def mark_reachable(self, reached: set) -> set:
+        """
+        Adds to marked connection targets in this layer that have connections from reachable sources.
+        :param reached: Set of IDs form previous layer (sources) that are marked as reachable.
+        :return: Set of IDs that are reachable in this layer.
+        """
+        marked = reached.copy()
+        for target, links in self._connections.items():
+            if is_reachable(links, reached):
+                marked.add(target)
+
+        return marked
+
+    def prune_unmarked(self, marked: set) -> set:
+        """
+        Removes targets (with its connections) that are not marked as reachable (forward).
+        Adds sources of the connections left as backward-reachable to originally marked ones and returns set of theirs ids.
+        :param marked: Set of IDs in this layer that are marked as reachable from a forward run.
+        :return: Set of source IDs that are backward-reachable.
+        """
+        marked_backward = marked.copy()
+        to_remove = set()
+        for target, links in self._connections.items():
+            if target not in marked:
+                to_remove.add(target)
+            elif not links:
+                to_remove.add(target)
+            else:
+                for source, _ in links:
+                    marked_backward.add(source)
+
+        for target in to_remove:
+            del self._connections[target]
+
+        return marked_backward
 
 
 class DirectConnections(__ActivationLayer):
@@ -236,11 +272,11 @@ class DirectConnections(__ActivationLayer):
         graph = self._next_layer._make_network(nx.MultiDiGraph(), types, 0)
 
         for target, links in self._connections.items():
-            target_name = ActionType(target)
+            target_name = ActionType(target).name
             graph.add_node(target_name, n_type=NeuronType.ACTION.name)
 
             for source, weight in links:
-                source_name = SensorType(source)
+                source_name = SensorType(source).name
                 graph.add_node(source_name, n_type=NeuronType.SENSOR.name)
                 graph.add_edge(source_name, target_name, weight=weight)
 

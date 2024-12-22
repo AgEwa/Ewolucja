@@ -38,9 +38,10 @@ class SensorType(AutoNumber):
     BARRIER_FWD = ()  # W neighborhood barrier distance forward-reverse axis
     BARRIER_LR = ()  # W neighborhood barrier distance left-right axis
     RANDOM = ()  # random sensor value = uniform distribution
-    PHEROMONE = ()  # W strength of pheromone in neighborhood
     PHEROMONE_FWD = ()  # W strength of pheromone in the forward-reverse axis
-    PHEROMONE_LR = ()  # W strength of pheromone in the left-right axis
+    PHEROMONE_L = ()  # W strength of pheromone to the left
+    PHEROMONE_R = ()  # W strength of pheromone to the right
+    ENERGY = ()  # I
 
 
 class ActionType(AutoNumber):

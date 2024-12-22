@@ -269,3 +269,28 @@ class Sensor:
     def _get_food_dist_lr(self):
         """get food dist in left-right axis"""
         return self._dist_in_line("food", self.specimen.last_movement_direction.rotate_90_deg_cw())
+
+    def _get_pheromone_fwd(self):
+        return grid.pheromones.read(
+            self.specimen.location.x,
+            self.specimen.location.y,
+            self.specimen.last_movement_direction,
+            "fwd"
+        )
+
+    def _get_pheromone_l(self):
+        return grid.pheromones.read(
+            self.specimen.location.x,
+            self.specimen.location.y,
+            self.specimen.last_movement_direction,
+            "l")
+
+    def _get_pheromone_r(self):
+        return grid.pheromones.read(
+            self.specimen.location.x,
+            self.specimen.location.y,
+            self.specimen.last_movement_direction,
+            "r")
+
+    def _get_energy(self):
+        return self.specimen.energy

@@ -1,3 +1,4 @@
+import logging
 import random
 
 import numpy as np
@@ -119,7 +120,7 @@ def evaluate_and_select():
     adaptation_function_value = current_energy * 0.25 + maximum_energy * 0.75
     selected_idx = select_best(adaptation_function_value, current_energy)
     pre_sigmoid = np.exp(adaptation_function_value[selected_idx])
-    print(adaptation_function_value[selected_idx])
+    logging.info(f"Adaptation value for selected: {adaptation_function_value[selected_idx]}")
     probabilities = pre_sigmoid / np.sum(pre_sigmoid)
     return probabilities, selected_idx + 1
 
@@ -128,7 +129,7 @@ def select_best(adaptation_values: list, energy: list):
     non_zero = np.argwhere(energy).flatten()
     if len(non_zero) < config.SELECT_N_SPECIMENS:
         missing = config.SELECT_N_SPECIMENS - len(non_zero)
-        print("mising: ", missing)
+        logging.info(f"Mising {missing} specimen with non-zero energy.")
         return np.concatenate((non_zero, np.argsort(adaptation_values)[-missing:]))
 
     values = [adaptation_values[i] if i in non_zero else 0 for i in range(len(adaptation_values))]
