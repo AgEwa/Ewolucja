@@ -1,3 +1,4 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame
 
 import config
@@ -12,7 +13,7 @@ class Square(QFrame):
         # use derived constructor
         super().__init__(p_parent)
 
-        # depending on mark type use diferent colour
+        # depending on mark type use different colour
         match p_mark_type:
             case MarkType.BARRIER:
                 self.setStyleSheet('background-color: black;')
@@ -21,12 +22,25 @@ class Square(QFrame):
             case _:
                 pass
 
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+
         # store mark type
         self.mark_type = p_mark_type
 
         # place square on map
-        self.setGeometry(p_x, p_y, round(config.SINGLE_MAP_SPACE_DIM), round(config.SINGLE_MAP_SPACE_DIM))
+        self.setGeometry(p_x, p_y, round(config.SPACE_DIM), round(config.SPACE_DIM))
         # show square
         self.show()
 
         return
+
+    def repaint(self):
+        match self.mark_type:
+            case MarkType.BARRIER:
+                self.setStyleSheet('background-color: black;')
+            case MarkType.FOOD:
+                self.setStyleSheet('background-color: green;')
+            case _:
+                pass
+
+        super().repaint()

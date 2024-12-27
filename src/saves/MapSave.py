@@ -15,20 +15,15 @@ class MapSave:
 
         return
 
-    def to_str_json(self) -> str:
+    def to_json(self) -> str:
         """ converts MapSave object to json representation """
 
         return json.dumps(self.__dict__)
 
-    def __str__(self):
-        """ custom string representation of MapSave object """
-
-        return f'MapSave(barriers_positions={self.barrier_positions}, food_positions={self.food_positions})'
-
     @staticmethod
-    def read(p_str_json: str) -> 'MapSave':
+    def from_json(p_json: str) -> 'MapSave':
         """ based on json representation creates MapSave object """
 
-        assert isinstance(p_str_json, str)
+        assert isinstance(p_json, str)
 
-        return MapSave(**(json.loads(p_str_json)))
+        return MapSave(**(json.loads(p_json)))

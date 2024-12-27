@@ -150,17 +150,23 @@ class MainWindow(QMainWindow):
     def open_plane_action_triggered(self) -> None:
         """ happens when open plane action is triggered """
 
-        # get path to saved plane user wants to open.
-        # open dialog box in default spot (saves folder), take first element, since it is the path
-        filepath = QFileDialog.getOpenFileName(directory=config.SAVES_FOLDER_PATH)[0]
+        try:
+            # get path to saved plane user wants to open.
+            # open dialog box in default spot (saves folder), take first element, since it is the path
+            filepath = QFileDialog.getOpenFileName(directory=config.SAVES_FOLDER_PATH)[0]
 
-        # open file for reading
-        with open(filepath, 'r') as f:
-            # read contents and create MapSave object out of it
-            map_save = MapSave.read(f.read())
+            # if file selected
+            if filepath != '':
+                # open file for reading
+                with open(filepath, 'r') as f:
+                    # read contents and create MapSave object out of it
+                    map_save = MapSave.from_json(f.read())
 
-        # for further use
-        print(map_save)
+                # for further use
+                print(map_save)
+
+        except Exception as e:
+            print(e)
 
         return
 

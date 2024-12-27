@@ -1,10 +1,15 @@
 from PyQt6.QtWidgets import QApplication
 
 from src.gui.MainWindow import MainWindow
+from src.saves.Saves import Saves
 
 
 def main():
     """ Application entry point """
+
+    Saves.init()
+
+    settings = Saves.read_settings()
 
     # creating application object. you can pass sys.args as argument to it
     # if you want your application to support starting arguments

@@ -5,7 +5,7 @@ PATH_TO_ROOT = os.path.join(os.path.expanduser('~'), 'Documents')
 ROOT_FOLDER_NAME = 'evolution'
 
 SAVES_FOLDER_NAME = 'saves'
-SETTINGS_FILE_NAME = 'settings'
+SETTINGS_FILE_NAME = 'settings.json'
 
 ROOT_FOLDER_PATH = os.path.join(PATH_TO_ROOT, ROOT_FOLDER_NAME)
 

@@ -144,20 +144,26 @@ class NewPlaneCreator(QMainWindow):
     def accept(self) -> None:
         """ tries to save created plane configuration """
 
-        # create MapSave object out of data returned by interactive map
-        map_save = MapSave(*(self._map.get_marked_data()))
+        try:
+            # create MapSave object out of data returned by interactive map
+            map_save = MapSave(*(self._map.get_marked_data()))
 
-        # get destination where user wants to store saved plane
-        # default directory to saves directory, allow only .json endings, take first element, since it is the path
-        filename = QFileDialog.getSaveFileName(self, 'Save file', config.SAVES_FOLDER_PATH, 'Text files (*.json)')[0]
+            # get destination where user wants to store saved plane
+            # default directory to saves directory, allow only .json endings, take first element, since it is the path
+            filename = QFileDialog.getSaveFileName(self, 'Save file', config.SAVES_FOLDER_PATH, 'Text files (*.json)')[
+                0]
 
-        # open file either for creating or overwriting (was prompted)
-        with open(filename, 'w') as f:
-            # write contents converting MapSave into json
-            f.write(map_save.to_str_json())
+            # if file selected
+            if filename != '':
+                # open file either for creating or overwriting (was prompted)
+                with open(filename, 'w') as f:
+                    # write contents converting MapSave into json
+                    f.write(map_save.to_json())
 
-        # close NewPlaneCreator
-        self.close()
+                # close NewPlaneCreator
+                self.close()
+        except Exception as e:
+            print(e)
 
         return
 

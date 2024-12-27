@@ -16,7 +16,7 @@ class Map(QFrame):
         super().__init__()
 
         # track marked spaces on map
-        self._grid = [[None for j in range(config.DIM)] for i in range(config.DIM)]
+        self._grid: list[list[Square | None]] = [[None for j in range(config.DIM)] for i in range(config.DIM)]
 
         # remember currently placing mark type
         self._cur_mark = MarkType.BARRIER
@@ -28,46 +28,66 @@ class Map(QFrame):
 
         return
 
-    def mouseMoveEvent(self, e) -> None:
-        """ event is called every time mouse moves (while either mouse button is pressed down) """
-
-        # use derived method
-        super().mouseMoveEvent(e)
-
-        # current coordinates relative to map. (0; 0) is topmost leftmost point of map
-        # x positive to right, y positive down
-        x = e.pos().x()
-        y = e.pos().y()
-
+    def draw2(self, p_x, p_y):
         # process only coordinates in-bounds (on map)
-        if 0 <= x < config.MAP_DIM and 0 <= y < config.MAP_DIM:
+        if 0 <= p_x < config.MAP_DIM and 0 <= p_y < config.MAP_DIM:
             # counts how many full spaces fit on x, y axes until detected cursor position
             # and also corresponds to coordinates in self._grid that should be marked!
-            x = math.floor(x / config.SINGLE_MAP_SPACE_DIM)
-            y = math.floor(y / config.SINGLE_MAP_SPACE_DIM)
+            x = math.floor(p_x / config.SPACE_DIM)
+            y = math.floor(p_y / config.SPACE_DIM)
 
             # if space was empty, and we do not currently clear plane
             if self._grid[x][y] is None and self._cur_mark != MarkType.EMPTY:
                 # create new space at given position and current mark type
-                # attention to round() - it allows to drawn 'pixels' (coloured spaces) to be smooth
                 self._grid[x][
-                    y] = Square(self, round(x * config.SINGLE_MAP_SPACE_DIM), round(y * config.SINGLE_MAP_SPACE_DIM), self._cur_mark)
+                    y] = Square(self, round(x * config.SPACE_DIM), round(y * config.SPACE_DIM), self._cur_mark)
             # if space was not empty, and we do not currently clear plane
             elif self._grid[x][y] is not None and self._cur_mark != MarkType.EMPTY:
                 # if used mark type is different from what is already present in space
                 if self._grid[x][y].mark_type != self._cur_mark:
-                    # destruct existing space object
-                    self._grid[x][y].close()
-                    # create new space at given position and current mark type
-                    # attention to round() - it allows to drawn 'pixels' (coloured spaces) to be smooth
-                    self._grid[x][
-                        y] = Square(self, round(x * config.SINGLE_MAP_SPACE_DIM), round(y * config.SINGLE_MAP_SPACE_DIM), self._cur_mark)
+                    self._grid[x][y].mark_type = self._cur_mark
+                    self._grid[x][y].repaint()
             # if space was not empty, and want to clear plane
             elif self._grid[x][y] is not None and self._cur_mark == MarkType.EMPTY:
                 # destruct existing object
+                # del self._grid[x][y]
                 self._grid[x][y].close()
                 # and set value to None
                 self._grid[x][y] = None
+
+        return
+
+    def draw(self, p_x, p_y) -> None:
+        try:
+            if 0 <= p_x < config.MAP_DIM and 0 <= p_y < config.MAP_DIM:
+                x = math.floor(p_x / config.SPACE_DIM)
+                y = math.floor(p_y / config.SPACE_DIM)
+
+                self._grid[x][y] = Square(self, round(x * config.SPACE_DIM), round(y * config.SPACE_DIM), self._cur_mark)
+        except Exception as e:
+            print(e)
+
+        return
+
+    def mouseReleaseEvent(self, e) -> None:
+        """ event is called every time mouse button is released """
+
+        # draw square based on cursor current position
+        self.draw(e.pos().x(), e.pos().y())
+
+        # use derived method
+        super().mouseReleaseEvent(e)
+
+        return
+
+    def mouseMoveEvent(self, e) -> None:
+        """ event is called every time mouse moves (while either mouse button is pressed down) """
+
+        # draw square based on cursor current position
+        self.draw(e.pos().x(), e.pos().y())
+
+        # use derived method
+        super().mouseMoveEvent(e)
 
         return
 
