@@ -9,6 +9,7 @@ from multiprocessing import Process, Queue
 import numpy as np
 
 import config
+from config_src import to_split
 from src.external import population, grid
 
 
@@ -84,7 +85,7 @@ def pickle_pop(pop, filename):
 def pickle_config(filename):
     logging.info("Process config started")
     filepath = os.path.join(config.SAVE_FOLDER, filename)
-    config_dict = {key: value for key, value in vars(config).items() if not key.startswith('__')}
+    config_dict = {key: value for key, value in vars(to_split).items() if not key.startswith('__')}
     with open(filepath, "wb") as file:
         pickle.dump(config_dict, file)
     logging.debug(f"Process config wrote.")

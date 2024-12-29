@@ -5,6 +5,7 @@ from multiprocessing import Queue, Process
 from unittest import TestCase
 
 import config
+from config_src import to_split
 from src.LocationTypes import Coord
 from src.population.Specimen import Specimen
 from src.utils.Save import pickle_pop, pickle_config, pickle_grid, process_pop, writer
@@ -59,7 +60,7 @@ class TestPickleSaving(TestCase):
     def test_pickle_config(self):
         # given
         test_file = "test_config.pickle"
-        original_config_dict = {key: value for key, value in vars(config).items() if not key.startswith('__')}
+        original_config_dict = {key: value for key, value in vars(to_split).items() if not key.startswith('__')}
         # when
         pickle_config(test_file)
         # then

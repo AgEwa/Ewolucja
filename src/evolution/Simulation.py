@@ -86,6 +86,8 @@ def simulation() -> None:
 
     # name of folder to store frames
     folder_name = 'frames'
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
     # unique ID for current simulation
     uid = uuid.uuid4()
 
