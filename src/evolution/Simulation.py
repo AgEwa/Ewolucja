@@ -7,8 +7,13 @@ from src.evolution.Operators import *
 from src.external import move_queue, kill_queue, grid
 from src.population.Specimen import Specimen
 from src.utils.Plot import *
+from src.utils.Save import SavingHelper
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue, probability
 from src.world.Grid import Grid
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(process)d - %(levelname)s: %(message)s (%(filename)s:%(lineno)d)',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def initialize_world():
@@ -86,11 +91,16 @@ def simulation() -> None:
 
     # names of frames
     filenames = []
+    # process' lists to join
     plot_processes = []
     gif_processes = []
     # population of specimens
     initialize_world()
     initialize_population()
+
+    if config.SAVE:
+        save_helper = SavingHelper(uid)
+        save_helper.start_writers()
 
     # simulation loop
     for generation in range(config.NUMBER_OF_GENERATIONS):
@@ -108,17 +118,7 @@ def simulation() -> None:
         for step in range(config.STEPS_PER_GENERATION):
             # has some time (in form of steps) to do something
 
-            # movement/evolution
-            # for every specimen
-            for specimen_idx in range(1, config.POPULATION_SIZE + 1):
-                # if it is alive
-                if population[specimen_idx].alive:
-                    # mutation
-                    if probability(config.MUTATION_PROBABILITY):
-                        mutate(population[specimen_idx])
-
-                    # let it take some actions
-                    population[specimen_idx].live()
+            count_dead = population_step()
 
             # execute kill actions
             drain_kill_queue(kill_queue)
@@ -136,8 +136,18 @@ def simulation() -> None:
                 plot_processes.append(p)
                 filenames.append(save_path_name)
 
+            if config.SAVE_EVOLUTION_STEP:
+                save_helper.save_step(generation, step, count_dead)
+
         probabilities, selected_idx = evaluate_and_select()
         genomes_for_new_population = reproduce(probabilities, selected_idx)
+
+        if config.SAVE_SELECTION:
+            save_helper.save_selection(generation, selected_idx)
+
+        if config.SAVE_GENERATION:
+            save_helper.save_gen(generation)
+
         wait_start = time.time()
         for p in plot_processes:
             p.join()
@@ -155,16 +165,44 @@ def simulation() -> None:
         new_generation_initialize(genomes_for_new_population)
         logging.info(f"Gen {generation} took {time.time() - gen_start}s.")
 
+    if config.SAVE_POPULATION:
+        save_helper.save_pop()
+
+    if config.SAVE_CONFIG:
+        save_helper.save_config()
+
+    if config.SAVE_GRID:
+        save_helper.save_grid()
+
+    if config.SAVE_CONFIG:
+        save_helper.save_config()
+
     wait_start = time.time()
     for p in gif_processes:
         p.join()
     logging.info(f"Waited {time.time() - wait_start}s for gif processes.")
+    if config.SAVE:
+        save_helper.close_writers()
+
+
+def population_step() -> int:
+    count_dead = 0
+    for specimen_idx in range(1, config.POPULATION_SIZE + 1):
+        # if it is alive
+        if population[specimen_idx].alive:
+            # mutation
+            if probability(config.MUTATION_PROBABILITY):
+                mutate(population[specimen_idx])
+
+            # let it take some actions
+            population[specimen_idx].live()
+        else:
+            count_dead += 1
+    return count_dead
 
 
 def main():
     """ starting point of application """
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
     start = time.time()
     simulation()
     logging.info(f"Simulation took {time.time() - start}s.")
