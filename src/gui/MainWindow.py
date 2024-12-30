@@ -1,9 +1,11 @@
 from enum import Enum, auto
+from multiprocessing import Process
 
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog
 
 import config
+from src.evolution import Simulation
 from src.gui.NewPlaneCreator import NewPlaneCreator
 from src.saves.MapSave import MapSave
 
@@ -47,6 +49,9 @@ class MainWindow(QMainWindow):
 
         # place container at the center
         self.setCentralWidget(self._container)
+
+        # create process for main program with simulation
+        self.simulation_process = Process(target=Simulation.main)
 
         return
 
@@ -121,6 +126,7 @@ class MainWindow(QMainWindow):
 
     def start_simulation_action_triggered(self) -> None:
         """ happens when start simulation action is triggered """
+        self.simulation_process.start()
 
         return
 

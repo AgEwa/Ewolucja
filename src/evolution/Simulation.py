@@ -1,6 +1,6 @@
 import time
 import uuid
-from multiprocessing import Process, set_start_method
+from multiprocessing import Process, set_start_method, freeze_support
 
 from src.LocationTypes import Coord
 from src.evolution.Operators import *
@@ -90,7 +90,7 @@ def simulation() -> None:
         os.mkdir(folder_name)
     # unique ID for current simulation
     uid = uuid.uuid4()
-
+    logging.info(f"Simulation id: {uid}")
     # names of frames
     filenames = []
     # process' lists to join
@@ -213,5 +213,7 @@ def main():
 
 
 if __name__ == '__main__':
+    # add support for freezing for Windows, otherwise no effect
+    freeze_support()
     set_start_method('spawn')
     main()

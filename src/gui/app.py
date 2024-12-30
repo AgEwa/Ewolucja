@@ -22,6 +22,7 @@ def main():
     # start application loop
     app.exec()
 
+    window.simulation_process.join()
     return
 
 
