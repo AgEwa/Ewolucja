@@ -40,8 +40,3 @@ class Saves:
                     f.write(Settings().to_json())
 
         return
-
-    @staticmethod
-    def read_settings() -> Settings:
-        with open(config.SETTINGS_PATH, 'r') as f:
-            return Settings.from_json(f.read())

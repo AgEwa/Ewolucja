@@ -47,7 +47,6 @@ MUTATE_N_GENES = 2
 MUTATE_N_BITS = 2
 
 ## selection ##
-
 SELECT_N_SPECIMENS = int(0.1 * POPULATION_SIZE)
 
 ## animation ##

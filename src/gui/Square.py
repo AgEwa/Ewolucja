@@ -28,7 +28,7 @@ class Square(QFrame):
         self.mark_type = p_mark_type
 
         # place square on map
-        self.setGeometry(p_x, p_y, round(config.SPACE_DIM), round(config.SPACE_DIM))
+        self.setGeometry(round(p_x * config.SPACE_DIM), round(p_y * config.SPACE_DIM), round(config.SPACE_DIM), round(config.SPACE_DIM))
         # show square
         self.show()
 

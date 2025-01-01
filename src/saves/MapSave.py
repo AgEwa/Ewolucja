@@ -1,19 +1,12 @@
 import json
+from dataclasses import dataclass, field
 
 
+@dataclass
 # describes map save
 class MapSave:
-    def __init__(self, barrier_positions, food_positions):
-        """ constructor """
-
-        # crucial for parameters and corresponding fields to have identical names
-
-        # assign barrier positions
-        self.barrier_positions = barrier_positions
-        # assign food positions
-        self.food_positions = food_positions
-
-        return
+    barrier_positions: list = field(default_factory=list)
+    food_positions: list = field(default_factory=list)
 
     def to_json(self) -> str:
         """ converts MapSave object to json representation """

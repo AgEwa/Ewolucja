@@ -9,7 +9,7 @@ from src.saves.MapSave import MapSave
 
 # new plane creator
 class NewPlaneCreator(QMainWindow):
-    def __init__(self):
+    def __init__(self, p_map_save=None):
         """ constructor """
 
         # use derived constructor
@@ -18,7 +18,7 @@ class NewPlaneCreator(QMainWindow):
         # root widget in window, it is parent of everything else visible
         self._container = QFrame()
         # interactive map that you can click to edit it
-        self._map = Map()
+        self._map = Map(p_map_save)
         # radio button to select what type of object to place on plane (barrier)
         self._barrier = QRadioButton('Barrier')
         # connect method that should be triggered

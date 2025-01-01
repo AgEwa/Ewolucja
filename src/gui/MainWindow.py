@@ -8,17 +8,21 @@ from src.gui.NewPlaneCreator import NewPlaneCreator
 from src.saves.MapSave import MapSave
 
 
-# this enum class describes available actions in 'Options' menu bar
-class MainOptions(Enum):
-    START_SIMULATION = auto()
+# this enum class describes available actions menus
+class MenuBarOptions(Enum):
     EDIT_SETTINGS = auto()
+    INFO = auto()
+    CREATE_NEW_PLANE = auto()
+    EDIT_PLANE = auto()
+    OPEN_PLANE = auto()
     EXIT = auto()
 
 
-# this enum class describes available actions in 'Plane' menu bar
-class PlaneOptions(Enum):
-    CREATE_NEW_PLANE = auto()
-    OPEN_PLANE = auto()
+# this enum class describes available actions in window
+class Buttons(Enum):
+    SAVE_SETTINGS = auto()
+    REVERT_SETTINGS = auto()
+    START_SIMULATION = auto()
 
 
 # main window of application
@@ -66,30 +70,50 @@ class MainWindow(QMainWindow):
     def set_up_actions(self) -> None:
         """ fills in actions dictionary """
 
-        # create action that corresponds to starting simulation
-        self._actions[MainOptions.START_SIMULATION] = QAction('Start simulation', self)
+        # create action that corresponds to exiting
+        self._actions[MenuBarOptions.EDIT_SETTINGS] = QAction('Edit settings', self)
         # connect method that should be triggered
-        self._actions[MainOptions.START_SIMULATION].triggered.connect(self.start_simulation_action_triggered)
-
-        # create action that corresponds to editing settings
-        self._actions[MainOptions.EDIT_SETTINGS] = QAction('Edit settings', self)
-        # connect method that should be triggered
-        self._actions[MainOptions.EDIT_SETTINGS].triggered.connect(self.edit_settings_action_triggered)
+        self._actions[MenuBarOptions.EDIT_SETTINGS].triggered.connect(self.edit_settings_action_triggered)
 
         # create action that corresponds to exiting
-        self._actions[MainOptions.EXIT] = QAction('Exit', self)
+        self._actions[MenuBarOptions.INFO] = QAction('Info', self)
         # connect method that should be triggered
-        self._actions[MainOptions.EXIT].triggered.connect(self.exit_action_triggered)
+        self._actions[MenuBarOptions.INFO].triggered.connect(self.info_action_triggered)
 
         # create action that corresponds to creating new plane
-        self._actions[PlaneOptions.CREATE_NEW_PLANE] = QAction('Create new plane', self)
+        self._actions[MenuBarOptions.CREATE_NEW_PLANE] = QAction('Create new plane', self)
         # connect method that should be triggered
-        self._actions[PlaneOptions.CREATE_NEW_PLANE].triggered.connect(self.create_new_plane_action_triggered)
+        self._actions[MenuBarOptions.CREATE_NEW_PLANE].triggered.connect(self.create_new_plane_action_triggered)
+
+        # create action that corresponds to creating new plane
+        self._actions[MenuBarOptions.EDIT_PLANE] = QAction('Edit plane', self)
+        # connect method that should be triggered
+        self._actions[MenuBarOptions.EDIT_PLANE].triggered.connect(self.edit_plane_action_triggered)
 
         # create action that corresponds to opening plane
-        self._actions[PlaneOptions.OPEN_PLANE] = QAction('Open plane', self)
+        self._actions[MenuBarOptions.OPEN_PLANE] = QAction('Open plane', self)
         # connect method that should be triggered
-        self._actions[PlaneOptions.OPEN_PLANE].triggered.connect(self.open_plane_action_triggered)
+        self._actions[MenuBarOptions.OPEN_PLANE].triggered.connect(self.open_plane_action_triggered)
+
+        # create action that corresponds to exiting
+        self._actions[MenuBarOptions.EXIT] = QAction('Exit', self)
+        # connect method that should be triggered
+        self._actions[MenuBarOptions.EXIT].triggered.connect(self.exit_action_triggered)
+
+        # create action that corresponds to starting simulation
+        self._actions[Buttons.SAVE_SETTINGS] = QAction('Save settings', self)
+        # connect method that should be triggered
+        self._actions[Buttons.SAVE_SETTINGS].triggered.connect(self.save_settings_action_triggered)
+
+        # create action that corresponds to starting simulation
+        self._actions[Buttons.REVERT_SETTINGS] = QAction('Revert settings', self)
+        # connect method that should be triggered
+        self._actions[Buttons.REVERT_SETTINGS].triggered.connect(self.revert_settings_action_triggered)
+
+        # create action that corresponds to starting simulation
+        self._actions[Buttons.START_SIMULATION] = QAction('Start simulation', self)
+        # connect method that should be triggered
+        self._actions[Buttons.START_SIMULATION].triggered.connect(self.start_simulation_action_triggered)
 
         return
 
@@ -99,41 +123,49 @@ class MainWindow(QMainWindow):
         # get menu bar
         menu = self.menuBar()
 
-        # add 'Options' menu
-        options_menu = menu.addMenu('Options')
-        # add start simulation action
-        options_menu.addAction(self._actions[MainOptions.START_SIMULATION])
-        # add edit settings action
-        options_menu.addAction(self._actions[MainOptions.EDIT_SETTINGS])
-        # add separator
-        options_menu.addSeparator()
-        # add exit action
-        options_menu.addAction(self._actions[MainOptions.EXIT])
+        if config.MODE == config.SETTINGS_MODES['new']:
+            options = menu.addMenu('Options')
+            options.addAction(self._actions[MenuBarOptions.EDIT_SETTINGS])
+            options.addSeparator()
+            options.addAction(self._actions[MenuBarOptions.EXIT])
 
-        # add 'Plane' menu
-        plane_menu = menu.addMenu('Plane')
-        # add create new plane action
-        plane_menu.addAction(self._actions[PlaneOptions.CREATE_NEW_PLANE])
-        # add open plane action
-        plane_menu.addAction(self._actions[PlaneOptions.OPEN_PLANE])
+            # add 'Plane' menu
+            plane_menu = menu.addMenu('Plane')
+            # add create new plane action
+            plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
+            # add create new plane action
+            plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
+            # add open plane action
+            plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
+
+            menu.addAction(self._actions[MenuBarOptions.INFO])
+
+            menu.addAction(self._actions[MenuBarOptions.INFO])
+        elif config.MODE == config.SETTINGS_MODES['main']:
+            menu.addAction(self._actions[MenuBarOptions.INFO])
+
+            plane_menu = menu.addMenu('Plane')
+            plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
+            plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
+            plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
+
+            menu.addAction(self._actions[MenuBarOptions.EXIT])
+
+            pass
+        else:
+            raise Exception('Invalid mode')
 
         return
 
-    def start_simulation_action_triggered(self) -> None:
-        """ happens when start simulation action is triggered """
-
-        return
-
-    def edit_settings_action_triggered(self) -> None:
+    def edit_settings_action_triggered(self):
         """ happens when edit settings action is triggered """
 
+        # settings_new_window mode only
+
         return
 
-    def exit_action_triggered(self) -> None:
-        """ happens when exit action is triggered """
-
-        # close main window, causes stopping application
-        self.close()
+    def info_action_triggered(self):
+        """ happens when info action is triggered """
 
         return
 
@@ -147,9 +179,8 @@ class MainWindow(QMainWindow):
 
         return
 
-    def open_plane_action_triggered(self) -> None:
-        """ happens when open plane action is triggered """
-
+    @staticmethod
+    def get_map_save():
         try:
             # get path to saved plane user wants to open.
             # open dialog box in default spot (saves folder), take first element, since it is the path
@@ -160,17 +191,62 @@ class MainWindow(QMainWindow):
                 # open file for reading
                 with open(filepath, 'r') as f:
                     # read contents and create MapSave object out of it
-                    map_save = MapSave.from_json(f.read())
-
-                # for further use
-                print(map_save)
+                    return MapSave.from_json(f.read())
 
         except Exception as e:
             print(e)
 
         return
 
-    def closeEvent(self, a0) -> None:
+    def open_plane_action_triggered(self) -> None:
+        """ happens when open plane action is triggered """
+
+        map_save = MainWindow.get_map_save()
+
+        print(map_save)
+
+        return
+
+    def edit_plane_action_triggered(self) -> None:
+        """ happens when edit plane action is triggered """
+
+        map_save = MainWindow.get_map_save()
+
+        # create new NewPlaneCreator object and store it, so it isn't closed in an instant
+        self._opened_new_plane_creators.append(NewPlaneCreator(map_save))
+        # show the lastly appended window
+        self._opened_new_plane_creators[-1].show()
+
+        pass
+
+    def exit_action_triggered(self) -> None:
+        """ happens when exit action is triggered """
+
+        # close main window, causes stopping application
+        self.close()
+
+        return
+
+    def save_settings_action_triggered(self):
+        """ happens when save settings action is triggered """
+
+        # settings_main_window mode only
+
+        return
+
+    def revert_settings_action_triggered(self):
+        """ happens when revert settings action is triggered """
+
+        # settings_main_window mode only
+
+        return
+
+    def start_simulation_action_triggered(self) -> None:
+        """ happens when start simulation action is triggered """
+
+        return
+
+    def closeEvent(self, event) -> None:
         """ executes when close event is triggered """
 
         # for every opened window
@@ -179,6 +255,6 @@ class MainWindow(QMainWindow):
             w.close()
 
         # then apply derived method
-        super().closeEvent(a0)
+        super().closeEvent(event)
 
         return
