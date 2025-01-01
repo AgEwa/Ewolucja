@@ -8,7 +8,7 @@ from src.gui.MarkType import MarkType
 # space on interactive map
 class Square(QFrame):
     def __init__(self, p_parent, p_x, p_y, p_mark_type):
-        """ constructor """
+        """ constructor, takes reference to parent QWidget, positions in grid (int) and mark type """
 
         # use derived constructor
         super().__init__(p_parent)

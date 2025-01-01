@@ -70,12 +70,12 @@ class MainWindow(QMainWindow):
     def set_up_actions(self) -> None:
         """ fills in actions dictionary """
 
-        # create action that corresponds to exiting
+        # create action that corresponds to editing settings
         self._actions[MenuBarOptions.EDIT_SETTINGS] = QAction('Edit settings', self)
         # connect method that should be triggered
         self._actions[MenuBarOptions.EDIT_SETTINGS].triggered.connect(self.edit_settings_action_triggered)
 
-        # create action that corresponds to exiting
+        # create action that corresponds to accessing information and instructions on how to use application
         self._actions[MenuBarOptions.INFO] = QAction('Info', self)
         # connect method that should be triggered
         self._actions[MenuBarOptions.INFO].triggered.connect(self.info_action_triggered)
@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         # connect method that should be triggered
         self._actions[MenuBarOptions.CREATE_NEW_PLANE].triggered.connect(self.create_new_plane_action_triggered)
 
-        # create action that corresponds to creating new plane
+        # create action that corresponds to editing plane
         self._actions[MenuBarOptions.EDIT_PLANE] = QAction('Edit plane', self)
         # connect method that should be triggered
         self._actions[MenuBarOptions.EDIT_PLANE].triggered.connect(self.edit_plane_action_triggered)
@@ -100,12 +100,12 @@ class MainWindow(QMainWindow):
         # connect method that should be triggered
         self._actions[MenuBarOptions.EXIT].triggered.connect(self.exit_action_triggered)
 
-        # create action that corresponds to starting simulation
+        # create action that corresponds to saving settings
         self._actions[Buttons.SAVE_SETTINGS] = QAction('Save settings', self)
         # connect method that should be triggered
         self._actions[Buttons.SAVE_SETTINGS].triggered.connect(self.save_settings_action_triggered)
 
-        # create action that corresponds to starting simulation
+        # create action that corresponds to reverting changes in settings
         self._actions[Buttons.REVERT_SETTINGS] = QAction('Revert settings', self)
         # connect method that should be triggered
         self._actions[Buttons.REVERT_SETTINGS].triggered.connect(self.revert_settings_action_triggered)
@@ -123,32 +123,42 @@ class MainWindow(QMainWindow):
         # get menu bar
         menu = self.menuBar()
 
+        # depending on mode use different layouts
         if config.MODE == config.SETTINGS_MODES['new']:
+            # create menu 'Options'
             options = menu.addMenu('Options')
+            # add edit settings action
             options.addAction(self._actions[MenuBarOptions.EDIT_SETTINGS])
+            # add separator
             options.addSeparator()
+            # add exit action
             options.addAction(self._actions[MenuBarOptions.EXIT])
 
-            # add 'Plane' menu
+            # create menu 'Plane'
             plane_menu = menu.addMenu('Plane')
             # add create new plane action
             plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
-            # add create new plane action
+            # add edit new plane action
             plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
             # add open plane action
             plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
 
-            menu.addAction(self._actions[MenuBarOptions.INFO])
-
+            # create menu action info
             menu.addAction(self._actions[MenuBarOptions.INFO])
         elif config.MODE == config.SETTINGS_MODES['main']:
+            # create menu action info
             menu.addAction(self._actions[MenuBarOptions.INFO])
 
+            # create menu 'Plane'
             plane_menu = menu.addMenu('Plane')
+            # add create new plane action
             plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
+            # add edit plane action
             plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
+            # add open plane actiona
             plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
 
+            # create menu action exit
             menu.addAction(self._actions[MenuBarOptions.EXIT])
 
             pass
@@ -201,8 +211,10 @@ class MainWindow(QMainWindow):
     def open_plane_action_triggered(self) -> None:
         """ happens when open plane action is triggered """
 
+        # read selected map save file
         map_save = MainWindow.get_map_save()
 
+        # example visualisation
         print(map_save)
 
         return
@@ -210,9 +222,11 @@ class MainWindow(QMainWindow):
     def edit_plane_action_triggered(self) -> None:
         """ happens when edit plane action is triggered """
 
+        # read selected map save file
         map_save = MainWindow.get_map_save()
 
         # create new NewPlaneCreator object and store it, so it isn't closed in an instant
+        # pass map_save object to load its data
         self._opened_new_plane_creators.append(NewPlaneCreator(map_save))
         # show the lastly appended window
         self._opened_new_plane_creators[-1].show()

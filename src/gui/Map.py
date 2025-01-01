@@ -11,7 +11,7 @@ from src.saves.MapSave import MapSave
 # interactive map
 class Map(QFrame):
     def __init__(self, p_map_save: MapSave = None):
-        """ constructor """
+        """ constructor, takes optional parameter p_map_save which places default spaces on map """
 
         # use derived constructor
         super().__init__()
@@ -23,10 +23,12 @@ class Map(QFrame):
         if p_map_save is not None:
             # go through barriers:
             for barrier in p_map_save.barrier_positions:
+                # place it on map
                 self._grid[barrier[0]][barrier[1]] = Square(self, barrier[0], barrier[1], MarkType.BARRIER)
 
             # go through food:
             for food in p_map_save.food_positions:
+                # place it on map
                 self._grid[food[0]][food[1]] = Square(self, food[0], food[1], MarkType.FOOD)
 
         # remember currently placing mark type
@@ -41,10 +43,13 @@ class Map(QFrame):
 
     def draw(self, p_x, p_y) -> None:
         try:
+            # if position is in bounds of map
             if 0 <= p_x < config.MAP_DIM and 0 <= p_y < config.MAP_DIM:
+                # calculate indexes of grid to be marked
                 x = math.floor(p_x / config.SPACE_DIM)
                 y = math.floor(p_y / config.SPACE_DIM)
 
+                # mark grid
                 self._grid[x][y] = Square(self, x, y, self._cur_mark)
         except Exception as e:
             print(e)

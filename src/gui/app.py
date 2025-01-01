@@ -8,8 +8,10 @@ from src.saves.Settings import Settings
 class Main:
     @staticmethod
     def main():
+        # initialise saves directory
         Saves.init()
 
+        # read settings and store them in class, so they can be accessed everywhere without circular import error
         Settings.read()
 
         # creating application object. you can pass sys.args as argument to it
