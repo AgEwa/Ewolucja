@@ -18,3 +18,11 @@ STATS_WIDTH = 6 * UNIT
 
 # space between map and stats
 EMPTY_SPACE_WIDTH = 3 * UNIT
+
+# settings_new_window
+# settings_main_window
+SETTINGS_MODES = {
+    'new': 'settings_new_window',
+    'main': 'settings_main_window'
+}
+MODE = SETTINGS_MODES['new']

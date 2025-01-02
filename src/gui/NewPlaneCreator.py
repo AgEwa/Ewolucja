@@ -9,16 +9,16 @@ from src.saves.MapSave import MapSave
 
 # new plane creator
 class NewPlaneCreator(QMainWindow):
-    def __init__(self):
-        """ constructor """
+    def __init__(self, p_map_save: MapSave = None):
+        """ constructor, takes optional parameter p_map_save which places default spaces on map """
 
         # use derived constructor
         super().__init__()
 
         # root widget in window, it is parent of everything else visible
         self._container = QFrame()
-        # interactive map that you can click to edit it
-        self._map = Map()
+        # interactive map that you can click to edit it, init with p_map_save
+        self._map = Map(p_map_save)
         # radio button to select what type of object to place on plane (barrier)
         self._barrier = QRadioButton('Barrier')
         # connect method that should be triggered
@@ -69,7 +69,9 @@ class NewPlaneCreator(QMainWindow):
         return
 
     def initialise(self):
+        # set window title
         self.setWindowTitle('Create new plane')
+        # set window size
         self._container.setFixedSize(config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
 
         return

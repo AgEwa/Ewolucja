@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import config
-from src.LocationTypes import Coord
-from src.external import grid, population, move_queue, kill_queue
+from src.external import grid, population, move_queue, kill_set
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.Specimen import Specimen
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue, probability
 from src.world.Grid import Grid
+from world.LocationTypes import Coord
 
 
 def make_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -> str:
@@ -239,7 +239,7 @@ def simulation() -> None:
                     population[specimen_idx].live()
 
             # execute kill actions
-            drain_kill_queue(kill_queue)
+            drain_kill_queue(kill_set)
             # execute move actions
             drain_move_queue(move_queue)
 
