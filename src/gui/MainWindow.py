@@ -5,13 +5,13 @@ from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBox
 
 import config
 from src.gui.NewPlaneCreator import NewPlaneCreator
-from src.gui.SettingsEditor import SettingsEditor
+from src.gui.ParametersEditor import ParametersEditor
 from src.saves.MapSave import MapSave
 
 
 # this enum class describes available actions menus
 class MenuBarOptions(Enum):
-    EDIT_SETTINGS = auto()
+    EDIT_PARAMETERS = auto()
     INFO = auto()
     CREATE_NEW_PLANE = auto()
     EDIT_PLANE = auto()
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
         # if not stored, it is immediately closed automatically and if stored in a single variable
         # it overwrites if you try to open the next one, so list it is
         self._opened_new_plane_creators = []
-        self._settings_editor = None
+        self._parameters_editor = None
         # dict of actions, for easier access
         self._actions = {}
         # root widget in window, it is parent of everything else visible
@@ -60,6 +60,9 @@ class MainWindow(QMainWindow):
         # place container at the center
         self.setCentralWidget(self._container)
 
+
+        self.edit_parameters_action_triggered()
+
         return
 
     def initialise(self) -> None:
@@ -77,9 +80,9 @@ class MainWindow(QMainWindow):
         """ fills in actions dictionary """
 
         # create action that corresponds to editing settings
-        self._actions[MenuBarOptions.EDIT_SETTINGS] = QAction('Edit settings', self)
+        self._actions[MenuBarOptions.EDIT_PARAMETERS] = QAction('Edit parameters', self)
         # connect method that should be triggered
-        self._actions[MenuBarOptions.EDIT_SETTINGS].triggered.connect(self.edit_settings_action_triggered)
+        self._actions[MenuBarOptions.EDIT_PARAMETERS].triggered.connect(self.edit_parameters_action_triggered)
 
         # create action that corresponds to exiting
         self._actions[MenuBarOptions.EXIT] = QAction('Exit', self)
@@ -122,7 +125,7 @@ class MainWindow(QMainWindow):
         # create menu 'Options'
         options = menu.addMenu('Options')
         # add edit settings action
-        options.addAction(self._actions[MenuBarOptions.EDIT_SETTINGS])
+        options.addAction(self._actions[MenuBarOptions.EDIT_PARAMETERS])
         # add separator
         options.addSeparator()
         # add exit action
@@ -184,12 +187,12 @@ class MainWindow(QMainWindow):
 
         return
 
-    def edit_settings_action_triggered(self):
+    def edit_parameters_action_triggered(self):
         """ happens when edit settings action is triggered """
 
         # settings_new_window mode only
-        self._settings_editor = SettingsEditor()
-        self._settings_editor.show()
+        self._parameters_editor = ParametersEditor()
+        self._parameters_editor.show()
 
         return
 
@@ -236,11 +239,12 @@ class MainWindow(QMainWindow):
         # read selected map save file
         map_save = MainWindow.get_map_save()
 
-        # create new NewPlaneCreator object and store it, so it isn't closed in an instant
-        # pass map_save object to load its data
-        self._opened_new_plane_creators.append(NewPlaneCreator(map_save))
-        # show the lastly appended window
-        self._opened_new_plane_creators[-1].show()
+        if map_save is not None:
+            # create new NewPlaneCreator object and store it, so it isn't closed in an instant
+            # pass map_save object to load its data
+            self._opened_new_plane_creators.append(NewPlaneCreator(map_save))
+            # show the lastly appended window
+            self._opened_new_plane_creators[-1].show()
 
         pass
 
@@ -270,8 +274,8 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         """ executes when close event is triggered """
 
-        if self._settings_editor is not None:
-            self._settings_editor.close()
+        if self._parameters_editor is not None:
+            self._parameters_editor.close()
 
         # for every opened window
         for w in self._opened_new_plane_creators:
