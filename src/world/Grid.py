@@ -5,7 +5,7 @@ import numpy as np
 import scipy
 
 import config
-from src.LocationTypes import Coord, Conversions, Direction, Compass
+from world.LocationTypes import Coord, Conversions, Direction, Compass
 
 
 class Grid:

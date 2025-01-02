@@ -2,10 +2,10 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock, Mock
 
 import config
-from src.LocationTypes import Coord, Direction, Compass
 from src.population.SensorActionEnums import ActionType
 from src.population.Specimen import Specimen
 from src.utils.utils import squeeze, response_curve
+from world.LocationTypes import Coord, Direction, Compass
 
 
 class TestSpecimen(TestCase):

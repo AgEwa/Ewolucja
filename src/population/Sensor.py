@@ -1,11 +1,11 @@
 import random
 
 from config import NEIGHBOURHOOD_RADIUS
-from src.LocationTypes import Conversions, Direction
 from src.external import grid
 from src.external import population
 from src.population.SensorActionEnums import SensorType
 from src.utils.utils import squeeze
+from world.LocationTypes import Conversions, Direction
 
 
 class Sensor:

@@ -1,4 +1,4 @@
-from src.LocationTypes import Coord, Conversions
+from world.LocationTypes import Coord, Conversions
 
 
 def main():

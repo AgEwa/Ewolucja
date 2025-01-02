@@ -67,13 +67,13 @@ class Layer:
         :param inputs: Dictionary of layer connections' input values keyed by source IDs.
         :return: Dictionary of outputs after processing the layer.
         """
-        self.process(inputs)
+        self._process(inputs)
 
         if self._next_layer:
             return self._next_layer.run(self._outputs)
         return self._outputs
 
-    def process(self, inputs: dict[int, float]):
+    def _process(self, inputs: dict[int, float]):
         """
         Processes inputs to compute output values based on the layer's connections.
         :param inputs: Dictionary of connection's inputs keyed by source IDs.
@@ -88,15 +88,15 @@ class Layer:
         :param reached_ids: Set of IDs from the previous layer that are reachable.
         :return: Set of IDs from previous layer that are reachable for backward propagation from this layer.
         """
-        marked = self.mark_reachable(reached_ids)
+        marked = self._mark_reachable(reached_ids)
 
         if self._next_layer:
             marked_backward = self._next_layer.optimize(marked)
             marked = marked.intersection(marked_backward)
 
-        return self.prune_unmarked(marked)
+        return self._prune_unmarked(marked)
 
-    def mark_reachable(self, reached: set) -> set:
+    def _mark_reachable(self, reached: set) -> set:
         """
         Marks connection targets in this layer that have connections from reachable sources.
         :param reached: Set of IDs form previous layer (sources) that are marked as reachable.
@@ -109,7 +109,7 @@ class Layer:
 
         return marked
 
-    def prune_unmarked(self, marked: set) -> set:
+    def _prune_unmarked(self, marked: set) -> set:
         """
         Removes targets (with its connections) that are not marked as reachable (forward).
         Marks sources of the connections left as backward-reachable and returns set of theirs ids.
@@ -130,7 +130,7 @@ class Layer:
 
         return marked_backward
 
-    def _make_network(self, graph: nx.MultiDiGraph, types: list[NeuronType], step: int):
+    def _make_graph(self, graph: nx.MultiDiGraph, types: list[NeuronType], step: int):
         for target, links in self._connections.items():
             target_name = get_node_name(target, types[step + 1])
             graph.add_node(target_name, n_type=types[step + 1].name)
@@ -141,7 +141,7 @@ class Layer:
                 graph.add_edge(source_name, target_name, weight=weight)
 
         if self._next_layer:
-            self._next_layer._make_network(graph, types, step + 1)
+            self._next_layer._make_graph(graph, types, step + 1)
         return graph
 
 
@@ -156,7 +156,7 @@ class __ActivationLayer(Layer):
         self._activation_func = func
         return self
 
-    def process(self, inputs: dict):
+    def _process(self, inputs: dict):
         """
         Processes connections by modifying output values.
         Applies activation function to all outputs afterward.
@@ -179,16 +179,16 @@ class LateralConnections(__ActivationLayer):
     Sublayer that allows processing lateral connections (links between neurons of the same layer) in neural network.
     """
 
-    def process(self, inputs: dict):
+    def _process(self, inputs: dict):
         """
         Processes lateral connections for inputs by using them as starting outputs and modifying their values.
         :param inputs: Dictionary of layer connections' input values keyed by source IDs
         """
         self._outputs = inputs.copy()
 
-        super().process(self._outputs)
+        super()._process(self._outputs)
 
-    def mark_reachable(self, reached: set) -> set:
+    def _mark_reachable(self, reached: set) -> set:
         """
         Adds to marked connection targets in this layer that have connections from reachable sources.
         :param reached: Set of IDs form previous layer (sources) that are marked as reachable.
@@ -201,7 +201,7 @@ class LateralConnections(__ActivationLayer):
 
         return marked
 
-    def prune_unmarked(self, marked: set) -> set:
+    def _prune_unmarked(self, marked: set) -> set:
         """
         Removes targets (with its connections) that are not marked as reachable (forward).
         Adds sources of the connections left as backward-reachable to originally marked ones and returns set of theirs ids.
@@ -245,7 +245,7 @@ class DirectConnections(__ActivationLayer):
         if self._next_layer:
             self._outputs = self._next_layer.run(inputs)
 
-        self.process(sensor_inputs)
+        self._process(sensor_inputs)
 
         return self._outputs
 
@@ -267,9 +267,9 @@ class DirectConnections(__ActivationLayer):
 
         return used
 
-    def get_network(self):
+    def to_graph(self):
         types = [NeuronType.SENSOR, NeuronType.INNER, NeuronType.INNER, NeuronType.ACTION]
-        graph = self._next_layer._make_network(nx.MultiDiGraph(), types, 0)
+        graph = self._next_layer._make_graph(nx.MultiDiGraph(), types, 0)
 
         for target, links in self._connections.items():
             target_name = ActionType(target).name

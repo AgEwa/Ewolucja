@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from src.LocationTypes import Direction, Compass
 from src.world.Grid import Grid
+from world.LocationTypes import Direction, Compass
 
 
 class TestPheromones(unittest.TestCase):

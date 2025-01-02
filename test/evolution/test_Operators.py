@@ -1,9 +1,9 @@
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
-from src.LocationTypes import Coord
 from src.evolution.Operators import *
 from utils.utils import initialize_genome
+from world.LocationTypes import Coord
 
 
 class TestOperators(TestCase):

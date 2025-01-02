@@ -68,7 +68,7 @@ class TestLayer(TestCase):
         # given
         inputs = {0: 2.0, 1: 3.0}
         # when
-        self.layer.process(inputs)
+        self.layer._process(inputs)
         # then
         # '1' = 0.5*2.0 + 1.0*3.0 = 4.0
         # '2' = 2.0*3.0 = 6.0
@@ -142,7 +142,7 @@ class TestLayer(TestCase):
         # given
         reached_ids = {0, 7}
         # when
-        marked = self.layer.mark_reachable(reached_ids)
+        marked = self.layer._mark_reachable(reached_ids)
         # then
         # '1' is reachable (depends on source '0')
         # '2' is not reachable (depends on source '1' that was not marked reachable)
@@ -153,7 +153,7 @@ class TestLayer(TestCase):
         # given
         marked = {2}
         # when
-        backward_reachable = self.layer.prune_unmarked(marked)
+        backward_reachable = self.layer._prune_unmarked(marked)
         # then
         # Only '2' should remain in connections
         self.assertIn(2, self.layer._connections)
@@ -187,7 +187,7 @@ class TestLateralConnections(TestCase):
         inputs = {1: 2.0, 2: 3.0}
         self.lateral_layer._activation_func = None
         # when
-        self.lateral_layer.process(inputs)
+        self.lateral_layer._process(inputs)
         # then
         # lateral connection from '1' to '2' adds 0.5*2.0 = 1.0
         # self-loop on '2' adds 1.0*3.0 = 3.0
@@ -288,7 +288,7 @@ class TestLateralConnections(TestCase):
         # given
         marked = {2}
         # when
-        backward_reachable = self.lateral_layer.prune_unmarked(marked)
+        backward_reachable = self.lateral_layer._prune_unmarked(marked)
         # then
         # connections are still there
         self.assertIn(2, self.lateral_layer._connections)

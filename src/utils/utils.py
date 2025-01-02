@@ -1,9 +1,10 @@
+import logging
 import random
 from math import tanh, sin, cos
 
 import config
-from src.LocationTypes import Conversions, Coord, Direction
-from src.external import grid
+from src.external import grid, population
+from world.LocationTypes import Conversions, Coord, Direction
 
 
 def initialize_genome(neuron_link_amount: int) -> list:
@@ -75,8 +76,13 @@ def bin_to_signed_int(binary: bin) -> int:
     return int_value
 
 
-def drain_kill_queue(p_queue: list):
-    pass
+def drain_kill_set(p_set: set):
+    for idx in p_set:
+        specimen = population[idx]
+        specimen.alive = False
+        specimen.energy = 0
+        logging.info("killed")
+    p_set.clear()
 
 
 def drain_move_queue(p_queue: list[tuple]):
@@ -100,7 +106,6 @@ def drain_move_queue(p_queue: list[tuple]):
         - Updates the specimen's state (location, energy, etc.).
         - Clears the input queue.
     """
-    count_moved = 0
     for record in p_queue:
         specimen = record[0]
         path = record[1]
@@ -127,7 +132,6 @@ def drain_move_queue(p_queue: list[tuple]):
                 specimen.last_movement_direction = Direction.random()
             else:
                 specimen.last_movement_direction = Conversions.coord_as_direction(new_location - specimen.location)
-                count_moved += 1
             specimen.location = new_location
 
     p_queue.clear()

@@ -7,6 +7,6 @@ grid = Grid(config.WIDTH, config.HEIGHT)
 # them. Index 0 means empty space
 population = [None]
 
-kill_queue = []
+kill_set = set()
 
 move_queue = []

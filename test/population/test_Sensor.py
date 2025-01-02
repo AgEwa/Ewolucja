@@ -2,11 +2,11 @@ from unittest import TestCase
 from unittest.mock import Mock, patch, MagicMock
 
 from config import NEIGHBOURHOOD_RADIUS
-from src.LocationTypes import Direction, Compass
 from src.external import grid
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType
 from src.utils.utils import squeeze
+from world.LocationTypes import Direction, Compass
 
 
 class TestSensor(TestCase):

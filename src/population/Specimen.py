@@ -1,12 +1,12 @@
 import random
 
 import config
-from src.LocationTypes import Direction, Conversions, Coord
-from src.external import move_queue, grid
+from src.external import move_queue, grid, kill_set
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
 from src.utils.utils import squeeze, response_curve, probability
 from utils.Plot import visualize_neural_network
+from world.LocationTypes import Direction, Conversions, Coord
 
 max_long_probe_dist = 32
 
@@ -45,7 +45,6 @@ class Specimen:
         self.last_movement_direction = Direction.random()
         # Coord object with x/y values of movement in that direction
         self.last_movement = Coord(0, 0)
-        self.challenge_bits = False
         self.max_energy = config.ENTRY_MAX_ENERGY_LEVEL
         self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
         self.genome = p_genome
@@ -139,9 +138,13 @@ class Specimen:
         level *= self.responsiveness_adj
 
         if level > kill_threshold and probability(level):
-            # TODO: implement kill
-
-            pass
+            for x in range(self.location.x - 1, self.location.x + 2):
+                for y in range(self.location.y - 1, self.location.y + 2):
+                    if x == self.location.x and y == self.location.y:
+                        continue
+                    if grid.in_bounds_xy(x, y) and grid.is_occupied_at_xy(x, y):
+                        specimen_idx = grid.at_xy(x, y)
+                        kill_set.add(specimen_idx)
 
     def _move(self, p_move):
         """Accumulates movements from `p_move` into a path and queues the movement"""
@@ -210,7 +213,7 @@ class Specimen:
         return Conversions.direction_as_normalized_coord(Direction.random())
 
     def plot_brain_graph(self):
-        visualize_neural_network(self.brain.layers.get_network())
+        visualize_neural_network(self.brain.layers.to_graph())
 
     def __str__(self):
         return f'{self.location} {self.genome}'

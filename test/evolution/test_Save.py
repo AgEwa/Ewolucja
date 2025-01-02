@@ -6,10 +6,10 @@ from unittest import TestCase
 
 import config
 from config_src import to_split
-from src.LocationTypes import Coord
 from src.population.Specimen import Specimen
 from src.utils.Save import pickle_pop, pickle_config, pickle_grid, process_pop, writer
 from src.utils.utils import initialize_genome
+from world.LocationTypes import Coord
 
 
 def eq_specimen(first, second, msg=None):

@@ -2,14 +2,14 @@ import time
 import uuid
 from multiprocessing import Process, set_start_method, freeze_support
 
-from src.LocationTypes import Coord
 from src.evolution.Operators import *
-from src.external import move_queue, kill_queue, grid
+from src.external import move_queue, kill_set, grid
 from src.population.Specimen import Specimen
 from src.utils.Plot import *
 from src.utils.Save import SavingHelper
-from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue, probability
+from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_set, probability
 from src.world.Grid import Grid
+from world.LocationTypes import Coord
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(process)d - %(levelname)s: %(message)s (%(filename)s:%(lineno)d)',
@@ -121,9 +121,11 @@ def simulation() -> None:
             # has some time (in form of steps) to do something
 
             count_dead = population_step()
+            if count_dead == config.POPULATION_SIZE:
+                break
 
             # execute kill actions
-            drain_kill_queue(kill_queue)
+            drain_kill_set(kill_set)
             # execute move actions
             drain_move_queue(move_queue)
             # spread pheromones
