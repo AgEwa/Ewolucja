@@ -1,10 +1,11 @@
 from enum import Enum, auto
 
 from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBoxLayout, QPushButton
 
 import config
 from src.gui.NewPlaneCreator import NewPlaneCreator
+from src.gui.SettingsEditor import SettingsEditor
 from src.saves.MapSave import MapSave
 
 
@@ -37,17 +38,24 @@ class MainWindow(QMainWindow):
         # if not stored, it is immediately closed automatically and if stored in a single variable
         # it overwrites if you try to open the next one, so list it is
         self._opened_new_plane_creators = []
+        self._settings_editor = None
         # dict of actions, for easier access
         self._actions = {}
         # root widget in window, it is parent of everything else visible
         self._container = QFrame(self)
 
+        self._map = QFrame()
+        self._map.setStyleSheet('background-color: white')
+        self._map.setFixedSize(config.MAP_DIM, config.MAP_DIM)
+        self._sidebar = QFrame()
         # initialise window
         self.initialise()
         # fill in actions dictionary
         self.set_up_actions()
         # create menu bar
         self.set_up_menu_bar()
+        # initiate layout
+        self.set_up_layout()
 
         # place container at the center
         self.setCentralWidget(self._container)
@@ -62,8 +70,6 @@ class MainWindow(QMainWindow):
         # set size
         # this is why container was used, cause if size was set on window itself, menu bar would take that space a bit
         self._container.setFixedSize(config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
-        # set background color (for ui developing purposes)
-        self._container.setStyleSheet('background-color: teal;')
 
         return
 
@@ -75,10 +81,10 @@ class MainWindow(QMainWindow):
         # connect method that should be triggered
         self._actions[MenuBarOptions.EDIT_SETTINGS].triggered.connect(self.edit_settings_action_triggered)
 
-        # create action that corresponds to accessing information and instructions on how to use application
-        self._actions[MenuBarOptions.INFO] = QAction('Info', self)
+        # create action that corresponds to exiting
+        self._actions[MenuBarOptions.EXIT] = QAction('Exit', self)
         # connect method that should be triggered
-        self._actions[MenuBarOptions.INFO].triggered.connect(self.info_action_triggered)
+        self._actions[MenuBarOptions.EXIT].triggered.connect(self.exit_action_triggered)
 
         # create action that corresponds to creating new plane
         self._actions[MenuBarOptions.CREATE_NEW_PLANE] = QAction('Create new plane', self)
@@ -95,20 +101,10 @@ class MainWindow(QMainWindow):
         # connect method that should be triggered
         self._actions[MenuBarOptions.OPEN_PLANE].triggered.connect(self.open_plane_action_triggered)
 
-        # create action that corresponds to exiting
-        self._actions[MenuBarOptions.EXIT] = QAction('Exit', self)
+        # create action that corresponds to accessing information and instructions on how to use application
+        self._actions[MenuBarOptions.INFO] = QAction('Info', self)
         # connect method that should be triggered
-        self._actions[MenuBarOptions.EXIT].triggered.connect(self.exit_action_triggered)
-
-        # create action that corresponds to saving settings
-        self._actions[Buttons.SAVE_SETTINGS] = QAction('Save settings', self)
-        # connect method that should be triggered
-        self._actions[Buttons.SAVE_SETTINGS].triggered.connect(self.save_settings_action_triggered)
-
-        # create action that corresponds to reverting changes in settings
-        self._actions[Buttons.REVERT_SETTINGS] = QAction('Revert settings', self)
-        # connect method that should be triggered
-        self._actions[Buttons.REVERT_SETTINGS].triggered.connect(self.revert_settings_action_triggered)
+        self._actions[MenuBarOptions.INFO].triggered.connect(self.info_action_triggered)
 
         # create action that corresponds to starting simulation
         self._actions[Buttons.START_SIMULATION] = QAction('Start simulation', self)
@@ -123,47 +119,68 @@ class MainWindow(QMainWindow):
         # get menu bar
         menu = self.menuBar()
 
-        # depending on mode use different layouts
-        if config.MODE == config.SETTINGS_MODES['new']:
-            # create menu 'Options'
-            options = menu.addMenu('Options')
-            # add edit settings action
-            options.addAction(self._actions[MenuBarOptions.EDIT_SETTINGS])
-            # add separator
-            options.addSeparator()
-            # add exit action
-            options.addAction(self._actions[MenuBarOptions.EXIT])
+        # create menu 'Options'
+        options = menu.addMenu('Options')
+        # add edit settings action
+        options.addAction(self._actions[MenuBarOptions.EDIT_SETTINGS])
+        # add separator
+        options.addSeparator()
+        # add exit action
+        options.addAction(self._actions[MenuBarOptions.EXIT])
 
-            # create menu 'Plane'
-            plane_menu = menu.addMenu('Plane')
-            # add create new plane action
-            plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
-            # add edit new plane action
-            plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
-            # add open plane action
-            plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
+        # create menu 'Plane'
+        plane_menu = menu.addMenu('Plane')
+        # add create new plane action
+        plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
+        # add edit new plane action
+        plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
+        # add open plane action
+        plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
 
-            # create menu action info
-            menu.addAction(self._actions[MenuBarOptions.INFO])
-        elif config.MODE == config.SETTINGS_MODES['main']:
-            # create menu action info
-            menu.addAction(self._actions[MenuBarOptions.INFO])
+        # create menu action info
+        menu.addAction(self._actions[MenuBarOptions.INFO])
 
-            # create menu 'Plane'
-            plane_menu = menu.addMenu('Plane')
-            # add create new plane action
-            plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
-            # add edit plane action
-            plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
-            # add open plane actiona
-            plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
+        return
 
-            # create menu action exit
-            menu.addAction(self._actions[MenuBarOptions.EXIT])
+    def set_up_parameters(self):
+        # what submission buttons to use - save and cancel
+        start_simulation_btn = QPushButton('Start simulation')
+        # connect method that should be triggered
+        start_simulation_btn.clicked.connect(self.start_simulation_action_triggered)
 
-            pass
-        else:
-            raise Exception('Invalid mode')
+        # create sidebar layout
+        sidebar_layout = QVBoxLayout()
+        # remove paddings
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        # add submission buttons
+        sidebar_layout.addWidget(start_simulation_btn)
+
+        # apply sidebar layout to sidebar object
+        self._sidebar.setLayout(sidebar_layout)
+
+        return
+
+    def set_up_layout(self) -> None:
+        """ place widgets in window """
+
+        # assemble sidebar
+        self.set_up_parameters()
+
+        # create layout
+        root_layout = QHBoxLayout()
+        # set space between widgets to be added
+        root_layout.setSpacing(config.EMPTY_SPACE_WIDTH)
+        # shortcut
+        m = config.WINDOW_PADDINGS
+        # set window paddings
+        root_layout.setContentsMargins(m, m, m, m)
+        # add interactive map
+        root_layout.addWidget(self._map)
+        # add sidebar
+        root_layout.addWidget(self._sidebar)
+
+        # apply created layout
+        self._container.setLayout(root_layout)
 
         return
 
@@ -171,11 +188,16 @@ class MainWindow(QMainWindow):
         """ happens when edit settings action is triggered """
 
         # settings_new_window mode only
+        self._settings_editor = SettingsEditor()
+        self._settings_editor.show()
 
         return
 
-    def info_action_triggered(self):
-        """ happens when info action is triggered """
+    def exit_action_triggered(self) -> None:
+        """ happens when exit action is triggered """
+
+        # close main window, causes stopping application
+        self.close()
 
         return
 
@@ -208,17 +230,6 @@ class MainWindow(QMainWindow):
 
         return
 
-    def open_plane_action_triggered(self) -> None:
-        """ happens when open plane action is triggered """
-
-        # read selected map save file
-        map_save = MainWindow.get_map_save()
-
-        # example visualisation
-        print(map_save)
-
-        return
-
     def edit_plane_action_triggered(self) -> None:
         """ happens when edit plane action is triggered """
 
@@ -233,35 +244,33 @@ class MainWindow(QMainWindow):
 
         pass
 
-    def exit_action_triggered(self) -> None:
-        """ happens when exit action is triggered """
+    def open_plane_action_triggered(self) -> None:
+        """ happens when open plane action is triggered """
 
-        # close main window, causes stopping application
-        self.close()
+        # read selected map save file
+        map_save = MainWindow.get_map_save()
 
-        return
-
-    def save_settings_action_triggered(self):
-        """ happens when save settings action is triggered """
-
-        # settings_main_window mode only
+        # example visualisation
+        print(map_save)
 
         return
 
-    def revert_settings_action_triggered(self):
-        """ happens when revert settings action is triggered """
-
-        # settings_main_window mode only
+    def info_action_triggered(self):
+        """ happens when info action is triggered """
 
         return
 
     def start_simulation_action_triggered(self) -> None:
         """ happens when start simulation action is triggered """
 
+        print('hello')
+
         return
 
     def closeEvent(self, event) -> None:
         """ executes when close event is triggered """
+
+        self._settings_editor.close()
 
         # for every opened window
         for w in self._opened_new_plane_creators:
