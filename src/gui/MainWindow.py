@@ -270,7 +270,8 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         """ executes when close event is triggered """
 
-        self._settings_editor.close()
+        if self._settings_editor is not None:
+            self._settings_editor.close()
 
         # for every opened window
         for w in self._opened_new_plane_creators:
