@@ -14,52 +14,76 @@ class ParametersEditor(QMainWindow):
 
         # input responsible for changing population size
         self.population_size = QSpinBox()
+        self.population_size.setMinimum(0)
+        self.population_size.setMaximum(10000)
         self.population_size.setValue(Settings.settings.population_size)
 
         # input responsible for changing number of generations
         self.num_generations = QSpinBox()
+        self.num_generations.setMinimum(0)
+        self.num_generations.setMaximum(1000)
         self.num_generations.setValue(Settings.settings.num_generations)
 
         # input responsible for changing number of steps per generation
         self.num_steps = QSpinBox()
+        self.num_steps.setMinimum(0)
+        self.num_steps.setMaximum(1000)
         self.num_steps.setValue(Settings.settings.num_steps)
-
-        # input responsible for changing mutation probability
-        self.prob_mutation = QDoubleSpinBox()
-        self.prob_mutation.setMinimum(0)
-        self.prob_mutation.setMaximum(1)
-        self.prob_mutation.setValue(Settings.settings.prob_mutation)
-
-        # input responsible for changing number of genes to be mutated
-        self.mutatable_genes_num = QSpinBox()
-        self.mutatable_genes_num.setValue(Settings.settings.mutatable_genes_num)
-
-        # input responsible for changing number of bits per gene to be mutated
-        self.mutatable_bits_num = QSpinBox()
-        self.mutatable_bits_num.setValue(Settings.settings.mutatable_bits_num)
 
         # input responsible for changing number of bits per gene to be mutated
         self.genome_length = QSpinBox()
+        self.genome_length.setMinimum(0)
+        self.genome_length.setMaximum(100)
         self.genome_length.setValue(Settings.settings.genome_length)
 
         # input responsible for changing number of inner neurons
         self.num_inner_neurons = QSpinBox()
+        self.num_inner_neurons.setMinimum(0)
+        self.num_inner_neurons.setMaximum(100)
         self.num_inner_neurons.setValue(Settings.settings.num_inner_neurons)
 
         # input responsible for disabling and enabling pheromones
         self.disable_pheromones = QCheckBox()
         self.disable_pheromones.setChecked(Settings.settings.disable_pheromones)
 
-        # input responsible for changing starting energy level
-        self.start_energy = QSpinBox()
-        self.start_energy.setValue(Settings.settings.start_energy)
+        # input responsible for changing mutation probability
+        self.prob_mutation = QDoubleSpinBox()
+        self.prob_mutation.setMinimum(0)
+        self.prob_mutation.setMaximum(1)
+        self.prob_mutation.setSingleStep(0.01)
+        self.prob_mutation.setValue(Settings.settings.prob_mutation)
+
+        # input responsible for changing number of genes to be mutated
+        self.mutatable_genes_num = QSpinBox()
+        self.mutatable_genes_num.setMinimum(0)
+        self.genome_length.valueChanged.connect(lambda x: self.mutatable_genes_num.setMaximum(x))
+        self.mutatable_genes_num.setMaximum(Settings.settings.genome_length)
+        self.mutatable_genes_num.setValue(Settings.settings.mutatable_genes_num)
+
+        # input responsible for changing number of bits per gene to be mutated
+        self.mutatable_bits_num = QSpinBox()
+        self.mutatable_bits_num.setMinimum(0)
+        # ToDo: ATTENTION! 32 bits maximum hardcoded. Maybe move to config?
+        self.mutatable_bits_num.setMaximum(32)
+        self.mutatable_bits_num.setValue(Settings.settings.mutatable_bits_num)
 
         # input responsible for changing maximum achievable energy level
         self.max_energy = QSpinBox()
+        self.max_energy.setMinimum(0)
+        self.max_energy.setMaximum(100)
         self.max_energy.setValue(Settings.settings.max_energy)
+
+        # input responsible for changing starting energy level
+        self.start_energy = QSpinBox()
+        self.start_energy.setMinimum(0)
+        self.max_energy.valueChanged.connect(lambda x: self.start_energy.setMaximum(x))
+        self.start_energy.setMaximum(Settings.settings.max_energy)
+        self.start_energy.setValue(Settings.settings.start_energy)
 
         # input responsible for changing grid dimension
         self.grid_dim = QSpinBox()
+        self.grid_dim.setMinimum(0)
+        self.grid_dim.setMaximum(100)
         self.grid_dim.setValue(Settings.settings.grid_dim)
 
         self._parameters = QFrame()
@@ -96,24 +120,24 @@ class ParametersEditor(QMainWindow):
         parameters_layout.addWidget(self.num_steps, 0, 7)
 
         # row 1
-        parameters_layout.addWidget(QLabel('Mutation probability:'), 1, 0)
-        parameters_layout.addWidget(self.prob_mutation, 1, 1)
+        parameters_layout.addWidget(QLabel('Genome length:'), 1, 0)
+        parameters_layout.addWidget(self.genome_length, 1, 1)
 
-        parameters_layout.addWidget(QLabel('Number of genes to be mutated:'), 1, 3)
-        parameters_layout.addWidget(self.mutatable_genes_num, 1, 4)
+        parameters_layout.addWidget(QLabel('Number of inner neurons:'), 1, 3)
+        parameters_layout.addWidget(self.num_inner_neurons, 1, 4)
 
-        parameters_layout.addWidget(QLabel('Number of bits in gene to be mutated:'), 1, 6)
-        parameters_layout.addWidget(self.mutatable_bits_num, 1, 7)
+        parameters_layout.addWidget(QLabel('Disable pheromones:'), 1, 6)
+        parameters_layout.addWidget(self.disable_pheromones, 1, 7)
 
         # row 2
-        parameters_layout.addWidget(QLabel('Genome length:'), 2, 0)
-        parameters_layout.addWidget(self.genome_length, 2, 1)
+        parameters_layout.addWidget(QLabel('Mutation probability:'), 2, 0)
+        parameters_layout.addWidget(self.prob_mutation, 2, 1)
 
-        parameters_layout.addWidget(QLabel('Number of inner neurons:'), 2, 3)
-        parameters_layout.addWidget(self.num_inner_neurons, 2, 4)
+        parameters_layout.addWidget(QLabel('Number of genes to be mutated:'), 2, 3)
+        parameters_layout.addWidget(self.mutatable_genes_num, 2, 4)
 
-        parameters_layout.addWidget(QLabel('Disable pheromones:'), 2, 6)
-        parameters_layout.addWidget(self.disable_pheromones, 2, 7)
+        parameters_layout.addWidget(QLabel('Number of bits in gene to be mutated:'), 2, 6)
+        parameters_layout.addWidget(self.mutatable_bits_num, 2, 7)
 
         # row 3
         parameters_layout.addWidget(QLabel('Starting energy level:'), 3, 0)
@@ -153,10 +177,6 @@ class ParametersEditor(QMainWindow):
         return
 
     def accept(self):
-        print('accepted!')
-
-        print(Settings.settings)
-
         Settings.settings.population_size = self.population_size.value()
         Settings.settings.num_generations = self.num_generations.value()
         Settings.settings.num_steps = self.num_steps.value()
@@ -170,15 +190,13 @@ class ParametersEditor(QMainWindow):
         Settings.settings.max_energy = self.max_energy.value()
         Settings.settings.grid_dim = self.grid_dim.value()
 
-        print(Settings.settings)
+        Settings.write()
 
         self.close()
 
         return
 
     def reject(self):
-        print('rejected :(')
-
         self.close()
 
         return

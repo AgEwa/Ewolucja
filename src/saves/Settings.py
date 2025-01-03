@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass, field
+from typing import ClassVar
 
 import config
 
@@ -25,6 +26,8 @@ class Settings:
 
     elements_to_save: list = field(default_factory=list)
 
+    settings: ClassVar['Settings'] = None
+
     def to_json(self) -> str:
         """ converts Settings object to json representation """
 
@@ -47,3 +50,14 @@ class Settings:
                 Settings.settings = Settings.from_json(f.read())
         except Exception as e:
             print(e)
+
+        return
+
+    @staticmethod
+    def write() -> None:
+        """  """
+
+        with open(config.SETTINGS_PATH, 'w') as f:
+            f.write(Settings.settings.to_json())
+
+        return

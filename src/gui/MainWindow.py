@@ -60,9 +60,6 @@ class MainWindow(QMainWindow):
         # place container at the center
         self.setCentralWidget(self._container)
 
-
-        self.edit_parameters_action_triggered()
-
         return
 
     def initialise(self) -> None:
