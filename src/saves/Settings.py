@@ -1,28 +1,30 @@
 import json
+import importlib
 from dataclasses import dataclass, field
 from typing import ClassVar
 
 import config
+from config_src import simulation_settings
 
 
 @dataclass
 # describes settings file
 class Settings:
     population_size: int = config.POPULATION_SIZE
-    num_generations: int = config.NUMBER_OF_GENERATIONS
-    num_steps: int = config.STEPS_PER_GENERATION
+    number_of_generations: int = config.NUMBER_OF_GENERATIONS
+    steps_per_generation: int = config.STEPS_PER_GENERATION
 
-    prob_mutation: float = config.MUTATION_PROBABILITY
-    mutatable_genes_num: int = config.MUTATE_N_GENES
-    mutatable_bits_num: int = config.MUTATE_N_BITS
+    mutation_probability: float = config.MUTATION_PROBABILITY
+    mutate_n_genes: int = config.MUTATE_N_GENES
+    mutate_n_bits: int = config.MUTATE_N_BITS
 
     genome_length: int = config.GENOME_LENGTH
-    num_inner_neurons: int = config.MAX_NUMBER_OF_INNER_NEURONS
-    disable_pheromones: bool = False
+    max_number_of_inner_neurons: int = config.MAX_NUMBER_OF_INNER_NEURONS
+    disable_pheromones: bool = config.DISABLE_PHEROMONES
 
-    start_energy: int = config.ENTRY_MAX_ENERGY_LEVEL
-    max_energy: int = config.MAX_ENERGY_LEVEL_SUPREMUM
-    grid_dim: int = config.DIM
+    entry_max_energy_level: int = config.ENTRY_MAX_ENERGY_LEVEL
+    max_energy_level_supremum: int = config.MAX_ENERGY_LEVEL_SUPREMUM
+    dim: int = config.DIM
 
     elements_to_save: list = field(default_factory=list)
 
@@ -42,7 +44,7 @@ class Settings:
         return Settings(**(json.loads(p_json)))
 
     @staticmethod
-    def read() -> None:
+    def read():
         """ reads current value of Settings and stores as static class field """
 
         try:
@@ -51,7 +53,7 @@ class Settings:
         except Exception as e:
             print(e)
 
-        return
+        return Settings.settings
 
     @staticmethod
     def write() -> None:
@@ -61,3 +63,12 @@ class Settings:
             f.write(Settings.settings.to_json())
 
         return
+
+    def update_configs(self):
+        for key, value in self.__dict__.items():
+            if key not in ["elements_to_save"]:
+                setattr(simulation_settings, key.upper(), value)
+
+        # TODO: obsługa "elements_to_save" jak będą w UI obecne
+
+        importlib.reload(config)

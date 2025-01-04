@@ -1,7 +1,7 @@
 import unittest
 
 from evolution.test_Operators import TestOperators
-from evolution.test_Save import TestPickleSaving, TestWriterSaving
+from utils.test_Save import TestPickleSaving, TestWriterSaving
 from population.test_Layer import *
 from population.test_NeuralNetwork import TestNeuralNetwork, TestDecodeConnection
 from population.test_Sensor import TestSensor

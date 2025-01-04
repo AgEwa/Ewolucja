@@ -7,8 +7,8 @@ from src.population.SensorActionEnums import SensorType, ActionType, NeuronType
 from src.utils.Oscilator import Oscillator
 from src.utils.utils import bin_to_signed_int
 
-sensors_num = len(list(SensorType))
-action_num = len(list(ActionType))
+sensors_num = len(list(SensorType)) if not config.DISABLE_PHEROMONES else len(list(SensorType)) - 3
+action_num = len(list(ActionType)) if not config.DISABLE_PHEROMONES else len(list(ActionType)) - 1
 
 
 def decode_connection(hex_gene: str) -> tuple[int, NeuronType, int, NeuronType, float]:

@@ -9,7 +9,7 @@ from multiprocessing import Process, Queue
 import numpy as np
 
 import config
-from config_src import to_split
+from config_src import simulation_settings
 from src.external import population, grid
 
 
@@ -82,10 +82,9 @@ def pickle_pop(pop, filename):
     return
 
 
-def pickle_config(filename):
+def pickle_config(config_dict, filename):
     logging.info("Process config started")
     filepath = os.path.join(config.SAVE_FOLDER, filename)
-    config_dict = {key: value for key, value in vars(to_split).items() if not key.startswith('__')}
     with open(filepath, "wb") as file:
         pickle.dump(config_dict, file)
     logging.debug(f"Process config wrote.")
@@ -154,7 +153,8 @@ class SavingHelper:
         self.processors.append(p)
 
     def save_config(self):
-        p = Process(target=pickle_config, args=(f"saved_{SaveType.CONFIG.name}_{self.uid}.pickle",))
+        config_dict = {key: value for key, value in vars(simulation_settings).items() if not key.startswith('__')}
+        p = Process(target=pickle_config, args=(config_dict.copy(), f"saved_{SaveType.CONFIG.name}_{self.uid}.pickle",))
         p.start()
         self.processors.append(p)
 

@@ -138,9 +138,6 @@ def simulation() -> None:
     if config.SAVE_GRID:
         save_helper.save_grid()
 
-    if config.SAVE_CONFIG:
-        save_helper.save_config()
-
     wait_start = time.time()
     for p in gif_processes:
         p.join()

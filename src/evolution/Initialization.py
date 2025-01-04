@@ -6,6 +6,7 @@ from multiprocessing import freeze_support, set_start_method
 import numpy as np
 
 import config
+from saves.Settings import Settings
 from src.evolution.Simulation import simulation
 from src.external import grid, population
 from src.population.Specimen import Specimen
@@ -16,6 +17,8 @@ from src.world.LocationTypes import Coord
 
 
 def initialize_simulation(map_save: MapSave = None):
+    settings = Settings.read()
+    settings.update_configs()
     if map_save:
         assert (grid.data == Grid.EMPTY).all()
         assert not grid.food_data

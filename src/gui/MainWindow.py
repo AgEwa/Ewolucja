@@ -291,5 +291,5 @@ class MainWindow(QMainWindow):
         return
 
     def shut(self):
-        if self.simulation_process.is_alive():
+        if self.simulation_process and self.simulation_process.is_alive():
             self.simulation_process.join()

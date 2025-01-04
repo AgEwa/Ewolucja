@@ -38,17 +38,16 @@ class SensorType(AutoNumber):
     BARRIER_FWD = ()  # W neighborhood barrier distance forward-reverse axis
     BARRIER_LR = ()  # W neighborhood barrier distance left-right axis
     RANDOM = ()  # random sensor value = uniform distribution
+    ENERGY = ()  # I
     PHEROMONE_FWD = ()  # W strength of pheromone in the forward-reverse axis
     PHEROMONE_L = ()  # W strength of pheromone to the left
     PHEROMONE_R = ()  # W strength of pheromone to the right
-    ENERGY = ()  # I
 
 
 class ActionType(AutoNumber):
     SET_RESPONSIVENESS = ()  # I
     SET_OSCILLATOR_PERIOD = ()  # I
     SET_LONGPROBE_DIST = ()  # I
-    EMIT_PHEROMONE = ()  # W
     KILL = ()
     MOVE_X = ()  # W +- X component of movement
     MOVE_Y = ()  # W +- Y component of movement
@@ -61,6 +60,7 @@ class ActionType(AutoNumber):
     MOVE_LEFT = ()  # W
     MOVE_RIGHT = ()  # W
     MOVE_RANDOM = ()  # W
+    EMIT_PHEROMONE = ()  # W
 
 
 class NeuronType(Enum):
