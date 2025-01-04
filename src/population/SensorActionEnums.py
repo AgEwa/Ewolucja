@@ -11,10 +11,6 @@ class AutoNumber(Enum):
 
 # I - data about individual specimen
 # W - data about the world
-class NeuronType(Enum):
-    SENSOR = 0
-    INNER = 1
-    ACTION = 2
 
 
 class SensorType(AutoNumber):
@@ -42,16 +38,16 @@ class SensorType(AutoNumber):
     BARRIER_FWD = ()  # W neighborhood barrier distance forward-reverse axis
     BARRIER_LR = ()  # W neighborhood barrier distance left-right axis
     RANDOM = ()  # random sensor value = uniform distribution
-    PHEROMONE = ()  # W strength of pheromone in neighborhood
+    ENERGY = ()  # I
     PHEROMONE_FWD = ()  # W strength of pheromone in the forward-reverse axis
-    PHEROMONE_LR = ()  # W strength of pheromone in the left-right axis
+    PHEROMONE_L = ()  # W strength of pheromone to the left
+    PHEROMONE_R = ()  # W strength of pheromone to the right
 
 
 class ActionType(AutoNumber):
     SET_RESPONSIVENESS = ()  # I
     SET_OSCILLATOR_PERIOD = ()  # I
     SET_LONGPROBE_DIST = ()  # I
-    EMIT_PHEROMONE = ()  # W
     KILL = ()
     MOVE_X = ()  # W +- X component of movement
     MOVE_Y = ()  # W +- Y component of movement
@@ -64,3 +60,10 @@ class ActionType(AutoNumber):
     MOVE_LEFT = ()  # W
     MOVE_RIGHT = ()  # W
     MOVE_RANDOM = ()  # W
+    EMIT_PHEROMONE = ()  # W
+
+
+class NeuronType(Enum):
+    SENSOR = SensorType
+    INNER = 1
+    ACTION = ActionType

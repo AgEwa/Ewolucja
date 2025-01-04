@@ -1,7 +1,8 @@
 from math import tanh
 from unittest import TestCase
 
-from population.Layer import *
+from src.population.Layer import *
+from src.population.SensorActionEnums import SensorType, ActionType
 
 
 class TestHelpFunctions(TestCase):
@@ -37,6 +38,16 @@ class TestHelpFunctions(TestCase):
         self.assertFalse(reachable)
         self.assertTrue(len(links) == 0)
 
+    def test_get_node_name(self):
+        result = get_node_name(1, NeuronType.SENSOR)
+        self.assertEqual(SensorType(1).name, result)
+
+        result = get_node_name(1, NeuronType.INNER)
+        self.assertEqual(1, result)
+
+        result = get_node_name(1, NeuronType.ACTION)
+        self.assertEqual(ActionType(1).name, result)
+
 
 class TestLayer(TestCase):
 
@@ -57,7 +68,7 @@ class TestLayer(TestCase):
         # given
         inputs = {0: 2.0, 1: 3.0}
         # when
-        self.layer.process(inputs)
+        self.layer._process(inputs)
         # then
         # '1' = 0.5*2.0 + 1.0*3.0 = 4.0
         # '2' = 2.0*3.0 = 6.0
@@ -131,7 +142,7 @@ class TestLayer(TestCase):
         # given
         reached_ids = {0, 7}
         # when
-        marked = self.layer.mark_reachable(reached_ids)
+        marked = self.layer._mark_reachable(reached_ids)
         # then
         # '1' is reachable (depends on source '0')
         # '2' is not reachable (depends on source '1' that was not marked reachable)
@@ -142,7 +153,7 @@ class TestLayer(TestCase):
         # given
         marked = {2}
         # when
-        backward_reachable = self.layer.prune_unmarked(marked)
+        backward_reachable = self.layer._prune_unmarked(marked)
         # then
         # Only '2' should remain in connections
         self.assertIn(2, self.layer._connections)
@@ -176,7 +187,7 @@ class TestLateralConnections(TestCase):
         inputs = {1: 2.0, 2: 3.0}
         self.lateral_layer._activation_func = None
         # when
-        self.lateral_layer.process(inputs)
+        self.lateral_layer._process(inputs)
         # then
         # lateral connection from '1' to '2' adds 0.5*2.0 = 1.0
         # self-loop on '2' adds 1.0*3.0 = 3.0
@@ -200,7 +211,7 @@ class TestLateralConnections(TestCase):
         # next layer:
         # '3' = 1.0*tanh(9.25) + 1.5*tanh(2.5) = 2.4799...
         self.assertIn(3, outputs)
-        self.assertAlmostEqual(1.0*tanh(9.25) + 1.5*tanh(2.5), outputs.get(3), 4)
+        self.assertAlmostEqual(1.0 * tanh(9.25) + 1.5 * tanh(2.5), outputs.get(3), 4)
 
     def test_optimize_for_non_redundant_network(self):
         # given
@@ -277,7 +288,7 @@ class TestLateralConnections(TestCase):
         # given
         marked = {2}
         # when
-        backward_reachable = self.lateral_layer.prune_unmarked(marked)
+        backward_reachable = self.lateral_layer._prune_unmarked(marked)
         # then
         # connections are still there
         self.assertIn(2, self.lateral_layer._connections)
@@ -331,6 +342,7 @@ class TestDirectConnections(TestCase):
         }
         self.last_layer = Layer(self.last_layer_connections)
         self.direct_layer.next(self.first_layer).next(self.last_layer)
+        # visualize_neural_network(self.direct_layer.get_network())
 
     def test_run_for_simple_network_with_activation(self):
         # given
@@ -375,7 +387,6 @@ class TestDirectConnections(TestCase):
         used_sources = direct_layer.optimize(source_ids)
         # then
         # deletes source '3' only
-        self.assertNotIn(3, used_sources)
         self.assertSetEqual({0, 1, 2, 4, 5}, used_sources)
         # optimization for inner layers is the same
         # no matter if they're in sequence with direct layer
@@ -408,3 +419,159 @@ class TestDirectConnections(TestCase):
         self.assertIn(4, result)
         for key in result:
             self.assertAlmostEqual(expected_result.get(key), result.get(key))
+
+
+def get_network_without_direct_layer():
+    connections = {
+        2: [(0, 2.0)],
+        3: [(0, 2.0), (1, 2.0)],
+        4: [(1, 2.0), (2, 2.0)]
+        # no connections to '4' in the next layer
+        # source '2' only feeds '4'
+    }
+    lateral_connections = {
+        1: [(2, 1.5)],
+        2: [(1, 0.5)],
+        # '1' is not connected with any source
+        3: [(3, 1.5), (0, 1.0)],
+        # '0' is not connected with any source
+        4: [(3, 0.5), (4, 1.5)],
+        # '4' is not connected in th nxt layer
+        5: [(3, 2.0)]
+    }
+    next_layer_connections = {
+        0: [(0, 2.0)],
+        # connection to '0' that's not fed by any source
+        1: [(1, 1.0), (2, 1.0), (3, 1.0)],
+        2: [(1, 1.0), (5, 2.0)],
+        3: [(2, 1.0), (3, 1.0), (0, 0.5)]
+        # connection to '0' that's not fed by any source
+
+    }
+    layer = Layer(connections)
+    lateral_layer = LateralConnections(lateral_connections)
+    next_layer = Layer(next_layer_connections)
+    return lateral_layer, layer, next_layer
+
+
+def get_network_with_empty_lateral_connections():
+    source_ids = {0, 1, 2, 3, 4, 5}  # always forward reachable
+    direct_connections = {
+        1: [(0, 1.5), (5, 0.5)],
+        2: [(2, 2.5)],
+        4: [(4, 1.2)]
+    }
+    direct_layer = DirectConnections(direct_connections)
+    first_layer, last_layer = make_redundant_network()
+    direct_layer.next(first_layer).next(LateralConnections()).next(last_layer)
+    # visualize_neural_network(direct_layer.get_network())
+    return direct_layer, first_layer, last_layer, source_ids
+
+
+class TestNetworksWithEmptyLayers(TestCase):
+    def test_optimize_with_empty_lateral(self):
+        # given
+        direct_layer, first_layer, last_layer, source_ids = get_network_with_empty_lateral_connections()
+        expected_first_layer, expected_last_layer = make_redundant_network()
+        expected_first_layer.next(expected_last_layer)
+        expected_first_layer.optimize(source_ids)
+        initial_direct_connections = direct_layer._connections.copy()
+
+        # when
+        used_sources = direct_layer.optimize(source_ids)
+        # then
+        # visualize_neural_network(direct_layer.get_network())
+        # deletes source '3' only
+        self.assertNotIn(3, used_sources)
+        self.assertSetEqual({0, 1, 2, 4, 5}, used_sources)
+        # optimization for inner layers is the same
+        # no matter if they're in sequence with direct layer
+        self.assertDictEqual(expected_first_layer._connections, first_layer._connections)
+        self.assertDictEqual(expected_last_layer._connections, last_layer._connections)
+        # direct connections stay the same
+        self.assertDictEqual(initial_direct_connections, direct_layer._connections)
+
+    def test_optimize_with_empty_direct(self):
+        # given
+        source_ids = {0, 1, 2}  # always forward reachable
+        direct_layer = DirectConnections()
+        lateral_layer, first_layer, next_layer = get_network_without_direct_layer()
+        direct_layer.next(first_layer).next(lateral_layer).next(next_layer)
+        # visualize_neural_network(direct_layer.get_network())
+        # when
+        used_sources = direct_layer.optimize(source_ids)
+        # then
+        # visualize_neural_network(direct_layer.get_network())
+        # deletes source '2' only
+        self.assertNotIn(2, used_sources)
+        self.assertIn(0, used_sources)
+        self.assertIn(1, used_sources)
+        # deletes connections to '4' in first first_layer, does not add '1' or '5'
+        self.assertNotIn(4, first_layer._connections)
+        self.assertNotIn(1, first_layer._connections)
+        self.assertNotIn(5, first_layer._connections)
+        self.assertIn(2, first_layer._connections)
+        self.assertIn(3, first_layer._connections)
+        # deletes '4', '0' and '2' from lateral first_layer, does not delete '1' or '5'
+        self.assertNotIn(0, lateral_layer._connections)
+        self.assertNotIn(4, lateral_layer._connections)
+        self.assertNotIn(2, lateral_layer._connections)
+        self.assertIn(1, lateral_layer._connections)
+        self.assertIn(5, lateral_layer._connections)
+        # deletes connection between '0' and '3' in lateral first_layer
+        self.assertNotIn((0, 1.0), lateral_layer._connections.get(3))
+        # deletes connections to '0' in second first_layer
+        self.assertNotIn(0, next_layer._connections)
+        self.assertIn(1, next_layer._connections)
+        self.assertIn(3, next_layer._connections)
+        # deletes connection between '0' and '3' in second first_layer
+        self.assertNotIn((0, 0.5), next_layer._connections.get(3))
+
+    def test_run_with_empty_lateral(self):
+        # given
+        source_ids = {0, 1, 2, 3, 4, 5}
+        inputs = {source: 1.0 for source in source_ids}
+        direct_connections = {
+            1: [(0, 1.5), (5, 0.5)],
+            2: [(2, 2.5)],
+            4: [(4, 1.2)]
+        }
+        direct_layer = DirectConnections(direct_connections)
+        first_layer, last_layer = make_redundant_network()
+        direct_layer.next(first_layer).next(LateralConnections()).next(last_layer)
+        # visualize_neural_network(direct_layer.get_network())
+        direct_layer.optimize(source_ids)
+        # visualize_neural_network(direct_layer.get_network())
+        expected_result = {1: 5.8, 2: 2.5, 3: 3.8, 4: 1.2}
+        # when
+        result = direct_layer.run(inputs)
+        # then
+        self.assertNotIn(0, result)
+        self.assertIn(1, result)
+        self.assertIn(2, result)
+        self.assertIn(3, result)
+        self.assertIn(4, result)
+        for key in result:
+            self.assertAlmostEqual(expected_result.get(key), result.get(key))
+
+    def test_run_with_empty_direct(self):
+        # given
+        source_ids = {0, 1, 2}
+        direct_layer = DirectConnections()
+        lateral_layer, first_layer, next_layer = get_network_without_direct_layer()
+        direct_layer.next(first_layer).next(lateral_layer).next(next_layer)
+
+        # visualize_neural_network(direct_layer.get_network())
+        used_surces = direct_layer.optimize(source_ids)
+        inputs = {source: 1.0 for source in used_surces}
+        # visualize_neural_network(direct_layer.get_network())
+
+        exp_lateral_layer, exp_first_layer, exp_next_layer = get_network_without_direct_layer()
+        exp_first_layer.next(exp_lateral_layer).next(exp_next_layer)
+        exp_first_layer.optimize(source_ids)
+        expected_result = exp_first_layer.run(inputs)
+
+        # when
+        result = direct_layer.run(inputs)
+        # then
+        self.assertDictEqual(expected_result, result)

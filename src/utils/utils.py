@@ -1,9 +1,10 @@
+import logging
 import random
 from math import tanh, sin, cos
 
 import config
-from src.LocationTypes import Conversions, Coord, Direction
-from src.external import grid
+from src.external import grid, population
+from src.world.LocationTypes import Conversions, Coord, Direction
 
 
 def initialize_genome(neuron_link_amount: int) -> list:
@@ -75,8 +76,13 @@ def bin_to_signed_int(binary: bin) -> int:
     return int_value
 
 
-def drain_kill_queue(p_queue: list):
-    pass
+def drain_kill_set(p_set: set):
+    for idx in p_set:
+        specimen = population[idx]
+        specimen.alive = False
+        specimen.energy = 0
+        logging.info("killed")
+    p_set.clear()
 
 
 def drain_move_queue(p_queue: list[tuple]):
@@ -111,10 +117,13 @@ def drain_move_queue(p_queue: list[tuple]):
             for step in path:
                 assert isinstance(step, Coord)
                 if grid.in_bounds(new_location + step) and grid.is_empty_at(new_location + step):
+                    if not specimen.can_move():
+                        break
                     new_location += step
                     if grid.is_food_at(new_location):
                         specimen.eat()
                         grid.food_eaten_at(new_location)  # decreases amount of food at food source
+                    specimen.use_energy(config.ENERGY_PER_ONE_UNIT_OF_MOVE)
 
             grid.data[specimen.location.x, specimen.location.y] = 0
             grid.data[new_location.x, new_location.y] = specimen.index

@@ -1,8 +1,8 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch, Mock
 
-from src.LocationTypes import Compass
 from src.utils.utils import *
+from src.world.LocationTypes import Compass
 
 
 class TestUtils(TestCase):

@@ -1,12 +1,11 @@
-import math
 from unittest import TestCase
 from unittest.mock import patch, MagicMock, Mock
 
 import config
-from src.LocationTypes import Coord, Direction, Compass
 from src.population.SensorActionEnums import ActionType
 from src.population.Specimen import Specimen
 from src.utils.utils import squeeze, response_curve
+from src.world.LocationTypes import Coord, Direction, Compass
 
 
 class TestSpecimen(TestCase):
@@ -17,8 +16,8 @@ class TestSpecimen(TestCase):
         self.location = Coord(0, 0)
         self.genome = ["a3f", "b2e", "c1d"]
         self.mock_brain = MagicMock()
-        mock_neural_network.return_value = self.mock_brain
         self.specimen = Specimen(self.index, self.location, self.genome.copy())
+        mock_neural_network.return_value = self.mock_brain
 
     def test_initialization(self):
         self.assertTrue(self.specimen.alive)
@@ -52,7 +51,7 @@ class TestSpecimen(TestCase):
             ActionType.SET_LONGPROBE_DIST: value
         }
         expected_responsiveness = squeeze(value)
-        expected_period = 1 + int(1.5 + math.exp(7 * squeeze(value)))
+        expected_period = squeeze(value)
         expected_dist = 1 + squeeze(value) * 32
         mock_oscillator = Mock()  # Create a mock for the oscillator
         self.specimen.oscillator = mock_oscillator  # Attach the oscillator mock to the specimen
@@ -62,22 +61,24 @@ class TestSpecimen(TestCase):
         # then
         self.assertEqual(expected_responsiveness, self.specimen.responsiveness)
         self.assertEqual(response_curve(expected_responsiveness), self.specimen.responsiveness_adj)
-        mock_oscillator.set_frequency.assert_called_once_with(1/expected_period)
+        mock_oscillator.set_frequency.assert_called_once_with(1 / expected_period)
         self.assertEqual(int(expected_dist), self.specimen.long_probe_dist)
 
-    def test_act_for_phermone(self):
+    @patch('src.population.Specimen.grid.Pheromones.emit')
+    def test_act_for_pheromone(self, mock_emit):
         # given
-        value = 0.5
+        config.FORCE_EMISSION_TEST = True
+        value = 0.6
         p_actions = {ActionType.EMIT_PHEROMONE: value}
         # when
         self.specimen.act(p_actions)
         # then
-        pass
+        mock_emit.assert_called_once()
 
-    @patch('src.LocationTypes.Conversions.direction_as_normalized_coord')
+    @patch('src.world.LocationTypes.Conversions.direction_as_normalized_coord')
     @patch('src.population.Specimen.random.choice')
     @patch('src.population.Specimen.probability')
-    @patch('src.LocationTypes.Conversions.coord_as_direction')
+    @patch('src.world.LocationTypes.Conversions.coord_as_direction')
     @patch('src.population.Specimen.move_queue')
     def test_act_for_move(self, mock_move_queue, mock_coord_as_direction, mock_probability, mock_choice,
                           mock_direction_as_coord):

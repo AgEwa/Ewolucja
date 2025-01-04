@@ -2,11 +2,11 @@ from unittest import TestCase
 from unittest.mock import Mock, patch, MagicMock
 
 from config import NEIGHBOURHOOD_RADIUS
-from src.LocationTypes import Direction
 from src.external import grid
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType
 from src.utils.utils import squeeze
+from src.world.LocationTypes import Direction, Compass
 
 
 class TestSensor(TestCase):
@@ -23,6 +23,7 @@ class TestSensor(TestCase):
         self.mock_specimen.last_movement.y = 2
         self.mock_specimen.last_movement_direction = Mock(spec=Direction)
         self.mock_specimen.long_probe_dist = 6
+        self.mock_specimen.energy = 10
         self.mock_specimen.genome = ['deadbeef', 'cafebabe', '12345678']
 
         # create Sensor instance using the mocked Specimen
@@ -57,7 +58,8 @@ class TestSensor(TestCase):
         self.mock_mod = Mock()
         self.mock_mod.x = 1
         self.mock_mod.y = 0
-        self.direction_as_normalized_coord_patch = patch('src.LocationTypes.Conversions.direction_as_normalized_coord',
+        self.direction_as_normalized_coord_patch = patch('src.world.LocationTypes.Conversions'
+                                                         '.direction_as_normalized_coord',
                                                          return_value=self.mock_mod)  # returns east direction
         self.direction_as_normalized_coord_patch.start()
 
@@ -344,3 +346,55 @@ class TestSensor(TestCase):
         similarity = self.sensor._genetic_similarity(genome3)
         # then
         self.assertTrue(0.0 <= similarity <= 1.0)
+
+    def test_get_pheromone_fwd(self):
+        self.grid_mock.pheromones.grid[3, 3] = 0.5
+        self.grid_mock.pheromones.grid[4, 3] = 0.7
+        self.mock_specimen.last_movement_direction = Direction(Compass.SOUTH)
+
+        sensor_type = SensorType.PHEROMONE_FWD.value
+        self.sensor.types.add(sensor_type)
+        # when
+        result = self.sensor.sense()
+        # then
+        expected_density = (0.5 + 0.7 + 0) / 3  # Average of pheromone values in the "forward" direction
+        self.assertAlmostEqual(squeeze(float(expected_density)), result.get(sensor_type))
+
+    def test_get_pheromone_l(self):
+        # Mock pheromone values on the grid
+        self.grid_mock.pheromones.grid[2, 1] = 0.5
+        self.grid_mock.pheromones.grid[2, 2] = 0.7
+        self.mock_specimen.last_movement_direction = Direction(Compass.NORTH)
+
+        # given
+        sensor_type = SensorType.PHEROMONE_L.value
+        self.sensor.types.add(sensor_type)
+        # when
+        result = self.sensor.sense()
+        # then
+        expected_density = (0.5 + 0.7 + 0) / 2
+        self.assertEqual(squeeze(float(expected_density)), result.get(sensor_type))
+
+    def test_get_pheromone_r(self):
+        # Mock pheromone values on the grid
+        self.grid_mock.pheromones.grid[2, 4] = 0.5
+        self.grid_mock.pheromones.grid[2, 9] = 0.7
+        self.mock_specimen.last_movement_direction = Direction(Compass.NORTH)
+
+        # given
+        sensor_type = SensorType.PHEROMONE_R.value
+        self.sensor.types.add(sensor_type)
+        # when
+        result = self.sensor.sense()
+        # then
+        expected_density = (0.5 + 0 + 0) / 3
+        self.assertEqual(squeeze(float(expected_density)), result.get(sensor_type))
+
+    def test_get_energy(self):
+        # given
+        sensor_type = SensorType.ENERGY.value
+        self.sensor.types.add(sensor_type)
+        # when
+        result = self.sensor.sense()
+        # then
+        self.assertEqual(squeeze(float(self.mock_specimen.energy)), result.get(sensor_type))

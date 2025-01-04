@@ -1,11 +1,12 @@
 import random
 
 import config
-from src.LocationTypes import Direction, Conversions, Coord
-from src.external import move_queue
+from src.external import move_queue, grid, kill_set
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
 from src.utils.utils import squeeze, response_curve, probability
+from src.world.LocationTypes import Direction, Conversions, Coord
+from utils.Plot import visualize_neural_network
 
 max_long_probe_dist = 32
 
@@ -36,7 +37,6 @@ class Specimen:
         self.birth_location = p_birth_location
         self.location = self.birth_location
         self.age = 0
-        self.genome = p_genome
         self.responsiveness = 0.5
         self.responsiveness_adj = response_curve(self.responsiveness)
         self.oscillator = None
@@ -45,13 +45,22 @@ class Specimen:
         self.last_movement_direction = Direction.random()
         # Coord object with x/y values of movement in that direction
         self.last_movement = Coord(0, 0)
-        self.challenge_bits = False
         self.max_energy = config.ENTRY_MAX_ENERGY_LEVEL
         self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
         self.genome = p_genome
         self.brain = NeuralNetwork(p_genome, self)
 
         return
+
+    def can_move(self):
+        return self.energy >= config.ENERGY_PER_ONE_UNIT_OF_MOVE
+
+    def use_energy(self, value: float):
+        self.energy -= value
+
+        if self.energy < min(config.ENERGY_PER_ONE_UNIT_OF_MOVE, config.ENERGY_DECREASE_IN_TIME):
+            self.energy = 0
+            self.alive = False
 
     def eat(self):
         # try to increase max energy level
@@ -66,6 +75,11 @@ class Specimen:
     def live(self):
         """ age the specimen and simulate living"""
         self.age += 1
+        self.use_energy(config.ENERGY_DECREASE_IN_TIME)
+
+        if not self.alive:
+            return
+
         actions = self.think()
         self.act(actions)
 
@@ -110,15 +124,12 @@ class Specimen:
         self.long_probe_dist = int(level)
 
     def _emit_pheromone(self, value):
-        emit_threshold = 0.5
-
+        emit_threshold = 0.1
         level = squeeze(value)
         level *= self.responsiveness_adj
 
-        if level > emit_threshold and probability(level):
-            # TODO: implement pheromones
-
-            pass
+        if level > emit_threshold and probability(level) or config.FORCE_EMISSION_TEST:
+            grid.pheromones.emit(self.location.x, self.location.y, self.last_movement_direction)
 
     def _kill(self, value):
         kill_threshold = 0.5
@@ -127,9 +138,13 @@ class Specimen:
         level *= self.responsiveness_adj
 
         if level > kill_threshold and probability(level):
-            # TODO: implement kill
-
-            pass
+            for x in range(self.location.x - 1, self.location.x + 2):
+                for y in range(self.location.y - 1, self.location.y + 2):
+                    if x == self.location.x and y == self.location.y:
+                        continue
+                    if grid.in_bounds_xy(x, y) and grid.is_occupied_at_xy(x, y):
+                        specimen_idx = grid.at_xy(x, y)
+                        kill_set.add(specimen_idx)
 
     def _move(self, p_move):
         """Accumulates movements from `p_move` into a path and queues the movement"""
@@ -196,6 +211,9 @@ class Specimen:
     @staticmethod
     def _move_random(_):
         return Conversions.direction_as_normalized_coord(Direction.random())
+
+    def plot_brain_graph(self):
+        visualize_neural_network(self.brain.layers.to_graph())
 
     def __str__(self):
         return f'{self.location} {self.genome}'
