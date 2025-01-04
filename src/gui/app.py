@@ -1,3 +1,5 @@
+from multiprocessing import set_start_method, freeze_support
+
 from PyQt6.QtWidgets import QApplication
 
 from src.gui.MainWindow import MainWindow
@@ -30,4 +32,6 @@ class Main:
 
 
 if __name__ == '__main__':
+    freeze_support()
+    set_start_method('spawn')
     Main.main()

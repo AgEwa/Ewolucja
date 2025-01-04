@@ -5,7 +5,7 @@ from src.external import grid
 from src.external import population
 from src.population.SensorActionEnums import SensorType
 from src.utils.utils import squeeze
-from world.LocationTypes import Conversions, Direction
+from src.world.LocationTypes import Conversions, Direction
 
 
 class Sensor:

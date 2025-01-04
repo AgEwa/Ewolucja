@@ -1,59 +1,19 @@
 import time
 import uuid
-from multiprocessing import Process, set_start_method, freeze_support
+from multiprocessing import Process
 
 from src.evolution.Operators import *
 from src.external import move_queue, kill_set, grid
 from src.population.Specimen import Specimen
 from src.utils.Plot import *
 from src.utils.Save import SavingHelper
-from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_set, probability
+from src.utils.utils import drain_move_queue, drain_kill_set, probability
 from src.world.Grid import Grid
-from world.LocationTypes import Coord
+from src.world.LocationTypes import Coord
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(process)d - %(levelname)s: %(message)s (%(filename)s:%(lineno)d)',
                     datefmt='%Y-%m-%d %H:%M:%S')
-
-
-def initialize_world():
-    """
-    Initializes the world by modifying global grid to place barriers and food sources.
-    """
-    # assert that grid is empty
-    assert (grid.data == Grid.EMPTY).all()
-    assert not grid.food_data
-    # list of all indexes available in the grid
-    all_places = [(row, col) for row in range(grid.height) for col in range(grid.width)]
-    # select indexes for barriers and update grid object
-    bar_placement = random.sample(all_places, config.BARRIERS_NUMBER)
-    grid.set_barriers_at_indexes(bar_placement)
-    # list of available indexes left
-    places_left = list(set(all_places).difference(bar_placement))
-    # select indexes for food sources and update grid object
-    food_placement = random.sample(places_left, config.FOOD_SOURCES_NUMBER)
-    grid.set_food_sources_at_indexes(food_placement)
-
-
-def initialize_population() -> None:
-    """
-    Initializes population with randomly placed specimen across the grid
-    """
-
-    # look for empty spaces
-    initials = np.argwhere(grid.data == Grid.EMPTY)
-    # randomly select sufficient amount of spaces for population
-    selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
-
-    for i in range(config.POPULATION_SIZE):
-        # create specimen and add it to population. Save its index (in population list), location (in grid) and
-        # randomly generated genome
-        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()),
-                                   initialize_genome(config.GENOME_LENGTH)))
-        # place index (reference to population list) on grid
-        grid.data[selected[i][0], selected[i][1]] = i + 1
-
-    return
 
 
 def new_generation_initialize(p_genomes: list) -> None:
@@ -97,8 +57,8 @@ def simulation() -> None:
     plot_processes = []
     gif_processes = []
     # population of specimens
-    initialize_world()
-    initialize_population()
+    # initialize_world()
+    # initialize_population()
 
     if config.SAVE:
         save_helper = SavingHelper(uid)
@@ -203,19 +163,3 @@ def population_step() -> int:
         else:
             count_dead += 1
     return count_dead
-
-
-def main():
-    """ starting point of application """
-    start = time.time()
-    simulation()
-    logging.info(f"Simulation took {time.time() - start}s.")
-
-    return
-
-
-if __name__ == '__main__':
-    # add support for freezing for Windows, otherwise no effect
-    freeze_support()
-    set_start_method('spawn')
-    main()

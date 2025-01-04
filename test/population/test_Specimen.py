@@ -5,7 +5,7 @@ import config
 from src.population.SensorActionEnums import ActionType
 from src.population.Specimen import Specimen
 from src.utils.utils import squeeze, response_curve
-from world.LocationTypes import Coord, Direction, Compass
+from src.world.LocationTypes import Coord, Direction, Compass
 
 
 class TestSpecimen(TestCase):
@@ -75,10 +75,10 @@ class TestSpecimen(TestCase):
         # then
         mock_emit.assert_called_once()
 
-    @patch('src.LocationTypes.Conversions.direction_as_normalized_coord')
+    @patch('src.world.LocationTypes.Conversions.direction_as_normalized_coord')
     @patch('src.population.Specimen.random.choice')
     @patch('src.population.Specimen.probability')
-    @patch('src.LocationTypes.Conversions.coord_as_direction')
+    @patch('src.world.LocationTypes.Conversions.coord_as_direction')
     @patch('src.population.Specimen.move_queue')
     def test_act_for_move(self, mock_move_queue, mock_coord_as_direction, mock_probability, mock_choice,
                           mock_direction_as_coord):

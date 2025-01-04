@@ -1,6 +1,15 @@
 import json
 from dataclasses import dataclass, field
 
+import config
+
+
+def correct_positions(positions_list: list[list]):
+    corrected = []
+    for pos in positions_list:
+        corrected.append((pos[0], config.HEIGHT - pos[1] - 1))
+    return corrected
+
 
 @dataclass
 # describes map save
@@ -20,3 +29,9 @@ class MapSave:
         assert isinstance(p_json, str)
 
         return MapSave(**(json.loads(p_json)))
+
+    def get_food_positions(self):
+        return correct_positions(self.food_positions)
+
+    def get_barrier_positions(self):
+        return correct_positions(self.barrier_positions)

@@ -5,8 +5,8 @@ from src.external import move_queue, grid, kill_set
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
 from src.utils.utils import squeeze, response_curve, probability
+from src.world.LocationTypes import Direction, Conversions, Coord
 from utils.Plot import visualize_neural_network
-from world.LocationTypes import Direction, Conversions, Coord
 
 max_long_probe_dist = 32
 

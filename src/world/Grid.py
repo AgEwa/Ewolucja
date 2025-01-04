@@ -5,7 +5,7 @@ import numpy as np
 import scipy
 
 import config
-from world.LocationTypes import Coord, Conversions, Direction, Compass
+from src.world.LocationTypes import Coord, Conversions, Direction, Compass
 
 
 class Grid:
@@ -30,6 +30,13 @@ class Grid:
 
         xs, ys = zip(*self.barriers)
         self.data[xs, ys] = Grid.BARRIER
+
+        return
+
+    def clear(self):
+        self.data = np.zeros((self.width, self.height), dtype=np.int16)
+        self.food_data = {}
+        self.barriers = []
 
         return
 

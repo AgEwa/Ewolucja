@@ -4,7 +4,7 @@ from math import tanh, sin, cos
 
 import config
 from src.external import grid, population
-from world.LocationTypes import Conversions, Coord, Direction
+from src.world.LocationTypes import Conversions, Coord, Direction
 
 
 def initialize_genome(neuron_link_amount: int) -> list:

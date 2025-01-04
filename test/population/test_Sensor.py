@@ -6,7 +6,7 @@ from src.external import grid
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType
 from src.utils.utils import squeeze
-from world.LocationTypes import Direction, Compass
+from src.world.LocationTypes import Direction, Compass
 
 
 class TestSensor(TestCase):
@@ -58,7 +58,8 @@ class TestSensor(TestCase):
         self.mock_mod = Mock()
         self.mock_mod.x = 1
         self.mock_mod.y = 0
-        self.direction_as_normalized_coord_patch = patch('src.LocationTypes.Conversions.direction_as_normalized_coord',
+        self.direction_as_normalized_coord_patch = patch('src.world.LocationTypes.Conversions'
+                                                         '.direction_as_normalized_coord',
                                                          return_value=self.mock_mod)  # returns east direction
         self.direction_as_normalized_coord_patch.start()
 
