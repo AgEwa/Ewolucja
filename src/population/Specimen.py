@@ -4,9 +4,9 @@ import config
 from src.external import move_queue, grid, kill_set
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
+from src.utils.Plot import visualize_neural_network
 from src.utils.utils import squeeze, response_curve, probability
 from src.world.LocationTypes import Direction, Conversions, Coord
-from utils.Plot import visualize_neural_network
 
 max_long_probe_dist = 32
 
@@ -107,8 +107,7 @@ class Specimen:
 
     def _set_responsiveness(self, value):
         self.responsiveness = squeeze(value)
-        self.responsiveness_adj = response_curve(self.responsiveness)
-        # Myślę że można przerobić żeby symulować starzenie się (mniejsza responsywność z czasem)
+        self.responsiveness_adj = response_curve(self.responsiveness)  # Myślę że można przerobić żeby symulować starzenie się (mniejsza responsywność z czasem)
 
     def _set_oscillator_period(self, value):
         if not self.oscillator:

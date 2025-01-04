@@ -11,9 +11,7 @@ from src.utils.utils import drain_move_queue, drain_kill_set, probability
 from src.world.Grid import Grid
 from src.world.LocationTypes import Coord
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(process)d - %(levelname)s: %(message)s (%(filename)s:%(lineno)d)',
-                    datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(process)d - %(levelname)s: %(message)s (%(filename)s:%(lineno)d)', datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def new_generation_initialize(p_genomes: list) -> None:
@@ -71,8 +69,8 @@ def simulation() -> None:
         # add population state frame before actions
         if config.SAVE_ANIMATION:
             save_path_name = os.path.join(folder_name, f'gif_{uid}_gen_{generation}_frame_0.png')
-            p = Process(target=plot_world,
-                        args=(grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
+            p = Process(target=plot_world, args=(
+            grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
             p.start()
             plot_processes.append(p)
             filenames.append(save_path_name)
@@ -94,8 +92,8 @@ def simulation() -> None:
             # add population state frame after one generation actions
             if config.SAVE_ANIMATION:
                 save_path_name = os.path.join(folder_name, f'gif_{uid}_gen_{generation}_frame_{step + 1}.png')
-                p = Process(target=plot_world,
-                            args=(grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
+                p = Process(target=plot_world, args=(
+                grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
                 p.start()
                 plot_processes.append(p)
                 filenames.append(save_path_name)
@@ -119,8 +117,8 @@ def simulation() -> None:
         plot_processes.clear()
         # compose frames into animation
         if config.SAVE_ANIMATION:
-            p = Process(target=to_gif,
-                        args=(os.path.join(folder_name, f'gif_{uid}_gen_{generation}'), filenames.copy()))
+            p = Process(target=to_gif, args=(
+            os.path.join(folder_name, f'gif_{uid}_gen_{generation}'), filenames.copy()))
             p.start()
             gif_processes.append(p)
 

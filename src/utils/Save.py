@@ -55,7 +55,9 @@ def process_pop(gen, pop, selected, queue):
     logging.debug("Process pop started")
     if selected is not None:
         pop = np.array(pop)[selected]
-    to_write = {"gen": gen}
+    to_write = {
+        "gen": gen
+    }
 
     for specimen in pop:
         if specimen:
@@ -106,10 +108,8 @@ class SavingHelper:
         self.queues = {member: Queue() for member in SaveType if member.is_enabled()}
         self.writing_processes = dict()
         self.writing_processes = {
-            member: Process(target=writer,
-                            args=(f"saved_{member.name}_{simulation_uid}.json", self.queues.get(member)))
-            for member in SaveType if member.is_enabled()
-        }
+            member: Process(target=writer, args=(f"saved_{member.name}_{simulation_uid}.json", self.queues.get(member)))
+            for member in SaveType if member.is_enabled()}
         self.processors = []
         self.uid = simulation_uid
         if not os.path.exists(config.SAVE_FOLDER):
@@ -132,18 +132,21 @@ class SavingHelper:
         logging.debug(f"Closed writers, waited: {time.time() - start}s.")
 
     def save_step(self, gen, step, dead_count):
-        line_to_write = {"gen": gen, "step": step, "dead count": dead_count}
+        line_to_write = {
+            "gen": gen,
+            "step": step,
+            "dead count": dead_count
+        }
         self.queues.get(SaveType.STEP).put(json.dumps(line_to_write))
 
     def save_selection(self, gen, selected_idx):
-        p = Process(target=process_pop,
-                    args=(gen, population.copy(), selected_idx, self.queues.get(SaveType.SELECTION)))
+        p = Process(target=process_pop, args=(
+        gen, population.copy(), selected_idx, self.queues.get(SaveType.SELECTION)))
         p.start()
         self.processors.append(p)
 
     def save_gen(self, gen):
-        p = Process(target=process_pop,
-                    args=(gen, population.copy(), None, self.queues.get(SaveType.GEN)))
+        p = Process(target=process_pop, args=(gen, population.copy(), None, self.queues.get(SaveType.GEN)))
         p.start()
         self.processors.append(p)
 
@@ -159,8 +162,7 @@ class SavingHelper:
         self.processors.append(p)
 
     def save_grid(self):
-        p = Process(target=pickle_grid,
-                    args=(grid.barriers.copy(), grid.food_data.copy(),
-                          f"saved_{SaveType.GRID.name}_{self.uid}.pickle"))
+        p = Process(target=pickle_grid, args=(
+        grid.barriers.copy(), grid.food_data.copy(), f"saved_{SaveType.GRID.name}_{self.uid}.pickle"))
         p.start()
         self.processors.append(p)

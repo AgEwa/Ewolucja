@@ -69,10 +69,8 @@ class Sensor:
     def _get_population(self):
         """get population density in neighbourhood"""
         number = 0
-        for x in range(self.specimen.location.x - NEIGHBOURHOOD_RADIUS,
-                       self.specimen.location.x + NEIGHBOURHOOD_RADIUS + 1):
-            for y in range(self.specimen.location.y - NEIGHBOURHOOD_RADIUS,
-                           self.specimen.location.y + NEIGHBOURHOOD_RADIUS + 1):
+        for x in range(self.specimen.location.x - NEIGHBOURHOOD_RADIUS, self.specimen.location.x + NEIGHBOURHOOD_RADIUS + 1):
+            for y in range(self.specimen.location.y - NEIGHBOURHOOD_RADIUS, self.specimen.location.y + NEIGHBOURHOOD_RADIUS + 1):
 
                 if grid.in_bounds_xy(x, y) and grid.is_occupied_at_xy(x, y):
                     number += 1
@@ -105,12 +103,10 @@ class Sensor:
 
         assert mod.x != 0 or mod.y != 0
 
-        while (grid.in_bounds_xy(x + mod.x * i, y + mod.y * i)
-               and not check(x + mod.x * i, y + mod.y * i)):
+        while (grid.in_bounds_xy(x + mod.x * i, y + mod.y * i) and not check(x + mod.x * i, y + mod.y * i)):
             i += 1
 
-        while (grid.in_bounds_xy(x - mod.x * j, y - mod.y * j)
-               and not check(x - mod.x * j, y - mod.y * j)):
+        while (grid.in_bounds_xy(x - mod.x * j, y - mod.y * j) and not check(x - mod.x * j, y - mod.y * j)):
             j += 1
 
         return min(i, j)
@@ -158,8 +154,8 @@ class Sensor:
 
         assert mod.x != 0 or mod.y != 0
 
-        while (grid.in_bounds_xy(x + mod.x * i, y + mod.y * i)
-               and not grid.is_occupied_at_xy(x + mod.x * i, y + mod.y * i)):
+        while (
+                grid.in_bounds_xy(x + mod.x * i, y + mod.y * i) and not grid.is_occupied_at_xy(x + mod.x * i, y + mod.y * i)):
             i += 1
 
         if grid.in_bounds_xy(x + mod.x * i, y + mod.y * i):
@@ -183,8 +179,8 @@ class Sensor:
 
         assert mod.x != 0 or mod.y != 0
 
-        while (grid.in_bounds_xy(x + mod.x * i, y + mod.y * i) and i < self.specimen.long_probe_dist
-               and not check(x + mod.x * i, y + mod.y * i)):
+        while (
+                grid.in_bounds_xy(x + mod.x * i, y + mod.y * i) and i < self.specimen.long_probe_dist and not check(x + mod.x * i, y + mod.y * i)):
             i += 1
 
         if goal == "pop_gen" and grid.in_bounds_xy(x + mod.x * i, y + mod.y * i):
@@ -221,10 +217,8 @@ class Sensor:
     def _get_food(self):
         """get food density in the neighbourhood"""
         number = 0
-        for x in range(self.specimen.location.x - NEIGHBOURHOOD_RADIUS,
-                       self.specimen.location.x + NEIGHBOURHOOD_RADIUS + 1):
-            for y in range(self.specimen.location.y - NEIGHBOURHOOD_RADIUS,
-                           self.specimen.location.y + NEIGHBOURHOOD_RADIUS + 1):
+        for x in range(self.specimen.location.x - NEIGHBOURHOOD_RADIUS, self.specimen.location.x + NEIGHBOURHOOD_RADIUS + 1):
+            for y in range(self.specimen.location.y - NEIGHBOURHOOD_RADIUS, self.specimen.location.y + NEIGHBOURHOOD_RADIUS + 1):
 
                 if grid.in_bounds_xy(x, y) and grid.is_food_at_xy(x, y):
                     number += grid.food_data.get((x, y))
@@ -271,26 +265,13 @@ class Sensor:
         return self._dist_in_line("food", self.specimen.last_movement_direction.rotate_90_deg_cw())
 
     def _get_pheromone_fwd(self):
-        return grid.pheromones.read(
-            self.specimen.location.x,
-            self.specimen.location.y,
-            self.specimen.last_movement_direction,
-            "fwd"
-        )
+        return grid.pheromones.read(self.specimen.location.x, self.specimen.location.y, self.specimen.last_movement_direction, "fwd")
 
     def _get_pheromone_l(self):
-        return grid.pheromones.read(
-            self.specimen.location.x,
-            self.specimen.location.y,
-            self.specimen.last_movement_direction,
-            "l")
+        return grid.pheromones.read(self.specimen.location.x, self.specimen.location.y, self.specimen.last_movement_direction, "l")
 
     def _get_pheromone_r(self):
-        return grid.pheromones.read(
-            self.specimen.location.x,
-            self.specimen.location.y,
-            self.specimen.last_movement_direction,
-            "r")
+        return grid.pheromones.read(self.specimen.location.x, self.specimen.location.y, self.specimen.last_movement_direction, "r")
 
     def _get_energy(self):
         return self.specimen.energy

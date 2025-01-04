@@ -67,11 +67,7 @@ class NeuralNetwork:
                     sensor_action.get(target_id).append((source_id, weight))
 
         self.layers = DirectConnections(sensor_action).add_activation_func(tanh)
-        self.layers.next(
-            Layer(sensor_inner)).next(
-            LateralConnections(inner_inner)
-            .add_activation_func(tanh)).next(
-            Layer(inner_action))
+        self.layers.next(Layer(sensor_inner)).next(LateralConnections(inner_inner).add_activation_func(tanh)).next(Layer(inner_action))
         used_sensors = self.layers.optimize(sensors_ids)
         # visualize_neural_network(self.layers.get_network())
         self.sensors = Sensor(used_sensors, self.specimen)

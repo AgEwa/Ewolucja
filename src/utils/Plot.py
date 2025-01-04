@@ -15,7 +15,10 @@ type_to_color = {
     "ACTION": "orange",
 }
 BARRIER_COLOR = 'black'
-SPECIMEN_COLOR = {True: 'red', False: "yellow"}
+SPECIMEN_COLOR = {
+    True: 'red',
+    False: "yellow"
+}
 food_cmap = plt.cm.Greens
 norm = mcolors.Normalize(vmin=0, vmax=config.FOOD_PER_SOURCE_MAX)
 
@@ -42,13 +45,13 @@ def visualize_neural_network(graph: nx.MultiDiGraph):
 def plot_world(barriers, food_data, pop, save_path_name: str):
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.clear()
-    ax.set_xticks(np.arange(-0.5, config.WIDTH, 1))
-    ax.set_yticks(np.arange(-0.5, config.HEIGHT, 1))
+    ax.set_xticks(np.arange(-0.5, config.DIM, 1))
+    ax.set_yticks(np.arange(-0.5, config.DIM, 1))
     ax.set_xticklabels([])
     ax.set_yticklabels([])
     ax.grid(color='gray', linestyle='-', linewidth=0.5)
-    ax.set_xlim(-0.5, config.WIDTH - 0.5)
-    ax.set_ylim(-0.5, config.HEIGHT - 0.5)
+    ax.set_xlim(-0.5, config.DIM - 0.5)
+    ax.set_ylim(-0.5, config.DIM - 0.5)
     ax.margins(0)
 
     for loc in barriers:
@@ -103,9 +106,7 @@ def make_simple_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -
     cmap = mpl.colormaps['gray']
     cmap.set_bad(color='white')
     ax.matshow(field_to_color, interpolation=None, cmap=cmap)
-    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False,
-                   labeltop=False, labelright=False,
-                   labelleft=False)
+    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelright=False, labelleft=False)
 
     name = os.path.join(p_folder_name, f'{p_plot_name}.png')
 

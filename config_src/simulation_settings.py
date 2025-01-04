@@ -1,6 +1,6 @@
 ## grid ##
 
-WIDTH = HEIGHT = DIM = 50
+DIM = 50
 
 ## initialization const ##
 

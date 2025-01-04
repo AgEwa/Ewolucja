@@ -4,8 +4,8 @@ import random
 import numpy as np
 
 import config
-from population.NeuralNetwork import NeuralNetwork
 from src.external import population
+from src.population.NeuralNetwork import NeuralNetwork
 from src.population.Specimen import Specimen
 from src.utils.utils import probability
 

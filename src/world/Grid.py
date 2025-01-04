@@ -148,8 +148,8 @@ class Grid:
                             # The dot product, due to orthogonality, disrupts emission in cells to the left and right,
                             # so we include some emission slightly to the side and in front of the specimen.
                             dx_norm, dy_norm = dx / (distance + 1e-6), dy / (distance + 1e-6)
-                            backward_factor = max(0.01,
-                                                  np.dot([dx_norm, dy_norm], [backward_coord.x, backward_coord.y]))
+                            backward_factor = max(0.01, np.dot([dx_norm, dy_norm], [backward_coord.x,
+                                                                                    backward_coord.y]))
                             intensity = strength * backward_factor / (1 + distance)
 
                             # print(f"[DEBUG] Emitting at ({nx}, {ny}) with intensity {intensity}")
@@ -208,13 +208,4 @@ class Grid:
             self.grid[:, 0] = 0
             self.grid[:, -1] = 0
 
-        # def get_at(self, x: int, y: int) -> float:
-        #     """
-        #     Retrieves the pheromone value at a SPECIFIC LOCATION.
-        #     Args:
-        #         x (int): X-coordinate.
-        #         y (int): Y-coordinate.
-        #     Returns:
-        #         float: Pheromone value.
-        #     """
-        #     return self.grid[x, y] if 0 <= x < self.width and 0 <= y < self.height else 0
+        # def get_at(self, x: int, y: int) -> float:  #     """  #     Retrieves the pheromone value at a SPECIFIC LOCATION.  #     Args:  #         x (int): X-coordinate.  #         y (int): Y-coordinate.  #     Returns:  #         float: Pheromone value.  #     """  #     return self.grid[x, y] if 0 <= x < self.width and 0 <= y < self.height else 0

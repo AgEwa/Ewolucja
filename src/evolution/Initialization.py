@@ -6,11 +6,11 @@ from multiprocessing import freeze_support, set_start_method
 import numpy as np
 
 import config
-from saves.Settings import Settings
 from src.evolution.Simulation import simulation
 from src.external import grid, population
 from src.population.Specimen import Specimen
 from src.saves.MapSave import MapSave
+from src.saves.Settings import Settings
 from src.utils.utils import initialize_genome
 from src.world.Grid import Grid
 from src.world.LocationTypes import Coord
@@ -63,8 +63,8 @@ def initialize_population() -> None:
     for i in range(config.POPULATION_SIZE):
         # create specimen and add it to population. Save its index (in population list), location (in grid) and
         # randomly generated genome
-        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()),
-                                   initialize_genome(config.GENOME_LENGTH)))
+        population.append(Specimen(i + 1, Coord(
+            selected[i, 0].item(), selected[i, 1].item()), initialize_genome(config.GENOME_LENGTH)))
         # place index (reference to population list) on grid
         grid.data[selected[i][0], selected[i][1]] = i + 1
 
