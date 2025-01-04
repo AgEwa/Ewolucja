@@ -144,7 +144,7 @@ def mutate(p_specimen: Specimen) -> None:
         # find index from which bits will be negated
         # since randint includes boundaries, we do from 0 to len - 1
         # but also considering how many bits we want to negate we subtract that number from the end
-        idx = random.randint(0, len(binary) - 1 - config.MUTATE_N_BITS)
+        idx = random.randint(0, len(binary) - config.MUTATE_N_BITS)
         for b in range(idx, idx + config.MUTATE_N_BITS):
             binary[b] = '0' if binary[b] == '1' else '1'
         # convert it back to hex

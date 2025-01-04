@@ -1,0 +1,202 @@
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QDialogButtonBox, QFrame, QGridLayout, QSpinBox, QLabel, \
+    QDoubleSpinBox, QCheckBox
+
+import config
+from src.saves.Settings import Settings
+
+
+class ParametersEditor(QMainWindow):
+    def __init__(self):
+        """ constructor """
+
+        # use derived constructor
+        super().__init__()
+
+        # input responsible for changing population size
+        self.population_size = QSpinBox()
+        self.population_size.setMinimum(0)
+        self.population_size.setMaximum(10000)
+        self.population_size.setValue(Settings.settings.population_size)
+
+        # input responsible for changing number of generations
+        self.num_generations = QSpinBox()
+        self.num_generations.setMinimum(0)
+        self.num_generations.setMaximum(1000)
+        self.num_generations.setValue(Settings.settings.num_generations)
+
+        # input responsible for changing number of steps per generation
+        self.num_steps = QSpinBox()
+        self.num_steps.setMinimum(0)
+        self.num_steps.setMaximum(1000)
+        self.num_steps.setValue(Settings.settings.num_steps)
+
+        # input responsible for changing number of bits per gene to be mutated
+        self.genome_length = QSpinBox()
+        self.genome_length.setMinimum(0)
+        self.genome_length.setMaximum(100)
+        self.genome_length.setValue(Settings.settings.genome_length)
+
+        # input responsible for changing number of inner neurons
+        self.num_inner_neurons = QSpinBox()
+        self.num_inner_neurons.setMinimum(0)
+        self.num_inner_neurons.setMaximum(100)
+        self.num_inner_neurons.setValue(Settings.settings.num_inner_neurons)
+
+        # input responsible for disabling and enabling pheromones
+        self.disable_pheromones = QCheckBox()
+        self.disable_pheromones.setChecked(Settings.settings.disable_pheromones)
+
+        # input responsible for changing mutation probability
+        self.prob_mutation = QDoubleSpinBox()
+        self.prob_mutation.setMinimum(0)
+        self.prob_mutation.setMaximum(1)
+        self.prob_mutation.setSingleStep(0.01)
+        self.prob_mutation.setValue(Settings.settings.prob_mutation)
+
+        # input responsible for changing number of genes to be mutated
+        self.mutatable_genes_num = QSpinBox()
+        self.mutatable_genes_num.setMinimum(0)
+        self.genome_length.valueChanged.connect(lambda x: self.mutatable_genes_num.setMaximum(x))
+        self.mutatable_genes_num.setMaximum(Settings.settings.genome_length)
+        self.mutatable_genes_num.setValue(Settings.settings.mutatable_genes_num)
+
+        # input responsible for changing number of bits per gene to be mutated
+        self.mutatable_bits_num = QSpinBox()
+        self.mutatable_bits_num.setMinimum(0)
+        # ToDo: ATTENTION! 32 bits maximum hardcoded. Maybe move to config?
+        self.mutatable_bits_num.setMaximum(32)
+        self.mutatable_bits_num.setValue(Settings.settings.mutatable_bits_num)
+
+        # input responsible for changing maximum achievable energy level
+        self.max_energy = QSpinBox()
+        self.max_energy.setMinimum(0)
+        self.max_energy.setMaximum(100)
+        self.max_energy.setValue(Settings.settings.max_energy)
+
+        # input responsible for changing starting energy level
+        self.start_energy = QSpinBox()
+        self.start_energy.setMinimum(0)
+        self.max_energy.valueChanged.connect(lambda x: self.start_energy.setMaximum(x))
+        self.start_energy.setMaximum(Settings.settings.max_energy)
+        self.start_energy.setValue(Settings.settings.start_energy)
+
+        # input responsible for changing grid dimension
+        self.grid_dim = QSpinBox()
+        self.grid_dim.setMinimum(0)
+        self.grid_dim.setMaximum(100)
+        self.grid_dim.setValue(Settings.settings.grid_dim)
+
+        self._parameters = QFrame()
+        self._container = QFrame(self)
+
+        self.initialise()
+        self.set_up_layout()
+
+        self.setCentralWidget(self._container)
+
+        return
+
+    def initialise(self):
+        self.setWindowTitle('Parameters editor')
+        self._container.setFixedSize(config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
+
+        return
+
+    def set_up_parameters(self):
+        parameters_layout = QGridLayout()
+
+        # spaces
+        parameters_layout.addWidget(QFrame(width=30), 0, 2)
+        parameters_layout.addWidget(QFrame(width=30), 0, 5)
+
+        # row 0
+        parameters_layout.addWidget(QLabel('Population size:'), 0, 0)
+        parameters_layout.addWidget(self.population_size, 0, 1)
+
+        parameters_layout.addWidget(QLabel('Number of generations:'), 0, 3)
+        parameters_layout.addWidget(self.num_generations, 0, 4)
+
+        parameters_layout.addWidget(QLabel('Number of steps per generation:'), 0, 6)
+        parameters_layout.addWidget(self.num_steps, 0, 7)
+
+        # row 1
+        parameters_layout.addWidget(QLabel('Genome length:'), 1, 0)
+        parameters_layout.addWidget(self.genome_length, 1, 1)
+
+        parameters_layout.addWidget(QLabel('Number of inner neurons:'), 1, 3)
+        parameters_layout.addWidget(self.num_inner_neurons, 1, 4)
+
+        parameters_layout.addWidget(QLabel('Disable pheromones:'), 1, 6)
+        parameters_layout.addWidget(self.disable_pheromones, 1, 7)
+
+        # row 2
+        parameters_layout.addWidget(QLabel('Mutation probability:'), 2, 0)
+        parameters_layout.addWidget(self.prob_mutation, 2, 1)
+
+        parameters_layout.addWidget(QLabel('Number of genes to be mutated:'), 2, 3)
+        parameters_layout.addWidget(self.mutatable_genes_num, 2, 4)
+
+        parameters_layout.addWidget(QLabel('Number of bits in gene to be mutated:'), 2, 6)
+        parameters_layout.addWidget(self.mutatable_bits_num, 2, 7)
+
+        # row 3
+        parameters_layout.addWidget(QLabel('Starting energy level:'), 3, 0)
+        parameters_layout.addWidget(self.start_energy, 3, 1)
+
+        parameters_layout.addWidget(QLabel('Supremum energy level:'), 3, 3)
+        parameters_layout.addWidget(self.max_energy, 3, 4)
+
+        parameters_layout.addWidget(QLabel('Grid dimension:'), 3, 6)
+        parameters_layout.addWidget(self.grid_dim, 3, 7)
+
+        self._parameters.setLayout(parameters_layout)
+
+        return
+
+    def set_up_layout(self):
+        self.set_up_parameters()
+
+        # what submission buttons to use - save and cancel
+        buttons = QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
+        # automatically create container for submission buttons
+        submission_block = QDialogButtonBox(buttons)
+        # connect method that should be triggered
+        submission_block.accepted.connect(self.accept)
+        # connect method that should be triggered
+        submission_block.rejected.connect(self.reject)
+
+        # create layout
+        root_layout = QVBoxLayout()
+        # add submission buttons
+        root_layout.addWidget(self._parameters)
+        # add submission buttons
+        root_layout.addWidget(submission_block)
+
+        self._container.setLayout(root_layout)
+
+        return
+
+    def accept(self):
+        Settings.settings.population_size = self.population_size.value()
+        Settings.settings.num_generations = self.num_generations.value()
+        Settings.settings.num_steps = self.num_steps.value()
+        Settings.settings.prob_mutation = self.prob_mutation.value()
+        Settings.settings.mutatable_genes_num = self.mutatable_genes_num.value()
+        Settings.settings.mutatable_bits_num = self.mutatable_bits_num.value()
+        Settings.settings.genome_length = self.genome_length.value()
+        Settings.settings.num_inner_neurons = self.num_inner_neurons.value()
+        Settings.settings.disable_pheromones = self.disable_pheromones.isChecked()
+        Settings.settings.start_energy = self.start_energy.value()
+        Settings.settings.max_energy = self.max_energy.value()
+        Settings.settings.grid_dim = self.grid_dim.value()
+
+        Settings.write()
+
+        self.close()
+
+        return
+
+    def reject(self):
+        self.close()
+
+        return
