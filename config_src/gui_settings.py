@@ -13,8 +13,5 @@ WINDOW_PADDINGS = 1 * UNIT
 # map dimensions
 MAP_DIM = 18 * UNIT
 
-# right side stats width
-STATS_WIDTH = 6 * UNIT
-
 # space between map and stats
 EMPTY_SPACE_WIDTH = 3 * UNIT

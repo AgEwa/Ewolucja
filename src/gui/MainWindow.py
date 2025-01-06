@@ -1,3 +1,4 @@
+import json
 from enum import Enum, auto
 from multiprocessing import Process
 
@@ -9,11 +10,13 @@ from src.evolution.Initialization import initialize_simulation
 from src.gui.InfoWindow import InfoWindow
 from src.gui.NewPlaneCreator import NewPlaneCreator
 from src.gui.ParametersEditor import ParametersEditor
+from src.population.Specimen import Specimen
 from src.saves.MapSave import MapSave
 
 
 # this enum class describes available actions menus
 class MenuBarOptions(Enum):
+    LOAD_POPULATION = auto()
     EDIT_PARAMETERS = auto()
     INFO = auto()
     CREATE_NEW_PLANE = auto()
@@ -86,6 +89,11 @@ class MainWindow(QMainWindow):
     def set_up_actions(self) -> None:
         """ fills in actions dictionary """
 
+        # create action that corresponds to loading population
+        self._actions[MenuBarOptions.LOAD_POPULATION] = QAction('Load population', self)
+        # connect method that should be triggered
+        self._actions[MenuBarOptions.LOAD_POPULATION].triggered.connect(self.load_population_action_triggered)
+
         # create action that corresponds to editing settings
         self._actions[MenuBarOptions.EDIT_PARAMETERS] = QAction('Edit parameters', self)
         # connect method that should be triggered
@@ -131,6 +139,8 @@ class MainWindow(QMainWindow):
 
         # create menu 'Options'
         options = menu.addMenu('Options')
+        # add load population action
+        options.addAction(self._actions[MenuBarOptions.LOAD_POPULATION])
         # add edit settings action
         options.addAction(self._actions[MenuBarOptions.EDIT_PARAMETERS])
         # add separator
@@ -152,7 +162,7 @@ class MainWindow(QMainWindow):
 
         return
 
-    def set_up_parameters(self):
+    def set_up_sidebar(self):
         # what submission buttons to use - save and cancel
         start_simulation_btn = QPushButton('Start simulation')
         # connect method that should be triggered
@@ -174,7 +184,7 @@ class MainWindow(QMainWindow):
         """ place widgets in window """
 
         # assemble sidebar
-        self.set_up_parameters()
+        self.set_up_sidebar()
 
         # create layout
         root_layout = QHBoxLayout()
@@ -191,6 +201,45 @@ class MainWindow(QMainWindow):
 
         # apply created layout
         self._container.setLayout(root_layout)
+
+        return
+
+    @staticmethod
+    def get_population_save():
+        try:
+            # get path to saved population user wants to open.
+            # take first element, since it is the path
+            filepath = QFileDialog.getOpenFileName()[0]
+
+            # if file selected
+            if filepath != '':
+                # open file for reading
+                with open(filepath, 'r') as f:
+                    # read contents and create MapSave object out of it
+                    # file is assumed to be json
+                    content = json.loads(f.read())
+
+                # content is assumed to be list of dict, where every dict represents Specimen object
+                # dict should contain genome at least, but can't contain location, as new world may have different
+                # dimension. ToDo: Specimen's constructor should be reworked.
+                population = []
+                for el in content:
+                    population.append(Specimen(**el))
+
+                return population
+
+        except Exception as e:
+            print(e)
+
+        return
+
+    def load_population_action_triggered(self):
+        """ happens when load population action is triggered """
+
+        # read selected population save file
+        population = MainWindow.get_population_save()
+        # example visualisation
+        print(population)
 
         return
 
