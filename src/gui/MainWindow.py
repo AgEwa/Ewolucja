@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBox
 
 import config
 from src.evolution.Initialization import initialize_simulation
+from src.gui.InfoWindow import InfoWindow
 from src.gui.NewPlaneCreator import NewPlaneCreator
 from src.gui.ParametersEditor import ParametersEditor
 from src.saves.MapSave import MapSave
@@ -44,6 +45,7 @@ class MainWindow(QMainWindow):
         # it overwrites if you try to open the next one, so list it is
         self._opened_new_plane_creators = []
         self._parameters_editor = None
+        self._info_window = None
         # dict of actions, for easier access
         self._actions = {}
         # root widget in window, it is parent of everything else visible
@@ -266,6 +268,9 @@ class MainWindow(QMainWindow):
     def info_action_triggered(self):
         """ happens when info action is triggered """
 
+        self._info_window = InfoWindow()
+        self._info_window.show()
+
         return
 
     def start_simulation_action_triggered(self) -> None:
@@ -276,6 +281,9 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:
         """ executes when close event is triggered """
+
+        if self._info_window is not None:
+            self._info_window.close()
 
         if self._parameters_editor is not None:
             self._parameters_editor.close()
