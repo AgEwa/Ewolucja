@@ -3,7 +3,7 @@ import uuid
 from enum import Enum, auto
 from multiprocessing import Process
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QAction, QMovie
 from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBoxLayout, QPushButton, QLabel
 
@@ -348,6 +348,7 @@ class MainWindow(QMainWindow):
 
         try:
             animation = QMovie(f'frames/gif_{self._uid}_gen_{self._cur_generation_animation}.gif')
+            animation.setScaledSize(QSize(config.MAP_DIM, config.MAP_DIM))
             self._map.setMovie(animation)
             animation.start()
         except Exception as e:
