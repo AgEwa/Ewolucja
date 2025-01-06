@@ -39,7 +39,7 @@ def new_generation_initialize(p_genomes: list) -> None:
     return
 
 
-def simulation() -> None:
+def simulation(uid) -> None:
     """ main simulation function """
 
     # name of folder to store frames
@@ -47,7 +47,6 @@ def simulation() -> None:
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
     # unique ID for current simulation
-    uid = uuid.uuid4()
     logging.info(f"Simulation id: {uid}")
     # names of frames
     filenames = []

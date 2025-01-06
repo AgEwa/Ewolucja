@@ -16,7 +16,7 @@ from src.world.Grid import Grid
 from src.world.LocationTypes import Coord
 
 
-def initialize_simulation(map_save: MapSave = None):
+def initialize_simulation(map_save: MapSave = None, uid=None):
     settings = Settings.read()
     settings.update_configs()
     if map_save:
@@ -28,7 +28,7 @@ def initialize_simulation(map_save: MapSave = None):
     else:
         initialize_world()
     initialize_population()
-    simulation()
+    simulation(uid)
 
 
 def initialize_world():
