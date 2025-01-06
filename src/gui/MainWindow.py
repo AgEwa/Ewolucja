@@ -1,32 +1,31 @@
+import json
+import uuid
 from enum import Enum, auto
 from multiprocessing import Process
 
-from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBoxLayout, QPushButton
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction, QMovie
+from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBoxLayout, QPushButton, QLabel
 
 import config
 from src.evolution.Initialization import initialize_simulation
 from src.gui.InfoWindow import InfoWindow
 from src.gui.NewPlaneCreator import NewPlaneCreator
 from src.gui.ParametersEditor import ParametersEditor
+from src.population.Specimen import Specimen
 from src.saves.MapSave import MapSave
+from src.saves.Settings import Settings
 
 
 # this enum class describes available actions menus
 class MenuBarOptions(Enum):
+    LOAD_POPULATION = auto()
     EDIT_PARAMETERS = auto()
     INFO = auto()
     CREATE_NEW_PLANE = auto()
     EDIT_PLANE = auto()
     OPEN_PLANE = auto()
     EXIT = auto()
-
-
-# this enum class describes available actions in window
-class Buttons(Enum):
-    SAVE_SETTINGS = auto()
-    REVERT_SETTINGS = auto()
-    START_SIMULATION = auto()
 
 
 # main window of application
@@ -44,17 +43,28 @@ class MainWindow(QMainWindow):
         # if not stored, it is immediately closed automatically and if stored in a single variable
         # it overwrites if you try to open the next one, so list it is
         self._opened_new_plane_creators = []
+        # field to store parameters editor window object ref
         self._parameters_editor = None
+        # field to store info window object ref
         self._info_window = None
+        # field to store which generation' animation is being played
+        self._cur_generation_animation = 0
+        # indicator of progress
+        self._progress_indicator = QLabel(f'1/{Settings.settings.number_of_generations}')
         # dict of actions, for easier access
         self._actions = {}
+        #
+        self._uid = None
+
+        # where to place animations
+        self._map = QLabel()
+        self._map.setStyleSheet('background-color: white')
+        self._map.setFixedSize(config.MAP_DIM, config.MAP_DIM)
+        # space with buttons
+        self._sidebar = QFrame()
         # root widget in window, it is parent of everything else visible
         self._container = QFrame(self)
 
-        self._map = QFrame()
-        self._map.setStyleSheet('background-color: white')
-        self._map.setFixedSize(config.MAP_DIM, config.MAP_DIM)
-        self._sidebar = QFrame()
         # initialise window
         self.initialise()
         # fill in actions dictionary
@@ -86,6 +96,11 @@ class MainWindow(QMainWindow):
     def set_up_actions(self) -> None:
         """ fills in actions dictionary """
 
+        # create action that corresponds to loading population
+        self._actions[MenuBarOptions.LOAD_POPULATION] = QAction('Load population', self)
+        # connect method that should be triggered
+        self._actions[MenuBarOptions.LOAD_POPULATION].triggered.connect(self.load_population_action_triggered)
+
         # create action that corresponds to editing settings
         self._actions[MenuBarOptions.EDIT_PARAMETERS] = QAction('Edit parameters', self)
         # connect method that should be triggered
@@ -116,11 +131,6 @@ class MainWindow(QMainWindow):
         # connect method that should be triggered
         self._actions[MenuBarOptions.INFO].triggered.connect(self.info_action_triggered)
 
-        # create action that corresponds to starting simulation
-        self._actions[Buttons.START_SIMULATION] = QAction('Start simulation', self)
-        # connect method that should be triggered
-        self._actions[Buttons.START_SIMULATION].triggered.connect(self.start_simulation_action_triggered)
-
         return
 
     def set_up_menu_bar(self) -> None:
@@ -131,6 +141,8 @@ class MainWindow(QMainWindow):
 
         # create menu 'Options'
         options = menu.addMenu('Options')
+        # add load population action
+        options.addAction(self._actions[MenuBarOptions.LOAD_POPULATION])
         # add edit settings action
         options.addAction(self._actions[MenuBarOptions.EDIT_PARAMETERS])
         # add separator
@@ -152,7 +164,21 @@ class MainWindow(QMainWindow):
 
         return
 
-    def set_up_parameters(self):
+    def set_up_sidebar(self):
+        # switch to previous generation's animation
+        switch_prev_gif_btn = QPushButton('Prev')
+        # connect method that should be triggered
+        switch_prev_gif_btn.clicked.connect(self.prev_gif_btn_clicked)
+
+        # switch to next generation's animation
+        switch_next_gif_btn = QPushButton('Next')
+        # connect method that should be triggered
+        switch_next_gif_btn.clicked.connect(self.next_gif_btn_clicked)
+
+        mini_layout = QHBoxLayout()
+        mini_layout.addWidget(switch_prev_gif_btn)
+        mini_layout.addWidget(switch_next_gif_btn)
+
         # what submission buttons to use - save and cancel
         start_simulation_btn = QPushButton('Start simulation')
         # connect method that should be triggered
@@ -162,6 +188,11 @@ class MainWindow(QMainWindow):
         sidebar_layout = QVBoxLayout()
         # remove paddings
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        sidebar_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        #
+        sidebar_layout.addWidget(self._progress_indicator)
+        #
+        sidebar_layout.addLayout(mini_layout)
         # add submission buttons
         sidebar_layout.addWidget(start_simulation_btn)
 
@@ -174,7 +205,7 @@ class MainWindow(QMainWindow):
         """ place widgets in window """
 
         # assemble sidebar
-        self.set_up_parameters()
+        self.set_up_sidebar()
 
         # create layout
         root_layout = QHBoxLayout()
@@ -191,6 +222,45 @@ class MainWindow(QMainWindow):
 
         # apply created layout
         self._container.setLayout(root_layout)
+
+        return
+
+    @staticmethod
+    def get_population_save():
+        try:
+            # get path to saved population user wants to open.
+            # take first element, since it is the path
+            filepath = QFileDialog.getOpenFileName()[0]
+
+            # if file selected
+            if filepath != '':
+                # open file for reading
+                with open(filepath, 'r') as f:
+                    # read contents and create MapSave object out of it
+                    # file is assumed to be json
+                    content = json.loads(f.read())
+
+                # content is assumed to be list of dict, where every dict represents Specimen object
+                # dict should contain genome at least, but can't contain location, as new world may have different
+                # dimension. ToDo: Specimen's constructor should be reworked.
+                population = []
+                for el in content:
+                    population.append(Specimen(**el))
+
+                return population
+
+        except Exception as e:
+            print(e)
+
+        return
+
+    def load_population_action_triggered(self):
+        """ happens when load population action is triggered """
+
+        # read selected population save file
+        population = MainWindow.get_population_save()
+        # example visualisation
+        print(population)
 
         return
 
@@ -273,10 +343,50 @@ class MainWindow(QMainWindow):
 
         return
 
+    def update_(self):
+        self._progress_indicator.setText(f'{self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
+
+        try:
+            animation = QMovie(f'frames/gif_{self._uid}_gen_{self._cur_generation_animation}.gif')
+            self._map.setMovie(animation)
+            animation.start()
+        except Exception as e:
+            print(e)
+
+        return
+
+    def prev_gif_btn_clicked(self):
+        """"""
+
+        self._cur_generation_animation -= 1
+
+        if self._cur_generation_animation < 0:
+            self._cur_generation_animation = 0
+
+        self.update_()
+
+        return
+
+    def next_gif_btn_clicked(self):
+        """"""
+
+        self._cur_generation_animation += 1
+
+        if self._cur_generation_animation > Settings.settings.number_of_generations - 1:
+            self._cur_generation_animation = Settings.settings.number_of_generations - 1
+
+        self.update_()
+
+        return
+
     def start_simulation_action_triggered(self) -> None:
         """ happens when start simulation action is triggered """
-        self.simulation_process = Process(target=initialize_simulation, args=(self._map_save,))
+
+        self._uid = uuid.uuid4()
+
+        self.simulation_process = Process(target=initialize_simulation, args=(self._map_save, self._uid))
         self.simulation_process.start()
+
         return
 
     def closeEvent(self, event) -> None:
