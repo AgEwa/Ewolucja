@@ -1,4 +1,5 @@
 import config
+
 from src.world.Grid import Grid
 
 grid = Grid(config.DIM, config.DIM)

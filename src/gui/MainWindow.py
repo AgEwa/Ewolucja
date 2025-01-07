@@ -1,10 +1,11 @@
-import json
+import os
+import pickle
 import uuid
 from enum import Enum, auto
 from multiprocessing import Process
 
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QAction, QMovie
+from PyQt6.QtGui import QAction, QMovie, QImage, QPixmap
 from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBoxLayout, QPushButton, QLabel
 
 import config
@@ -12,9 +13,9 @@ from src.evolution.Initialization import initialize_simulation
 from src.gui.InfoWindow import InfoWindow
 from src.gui.NewPlaneCreator import NewPlaneCreator
 from src.gui.ParametersEditor import ParametersEditor
-from src.population.Specimen import Specimen
 from src.saves.MapSave import MapSave
 from src.saves.Settings import Settings
+from src.utils.Plot import plot_world
 
 
 # this enum class describes available actions menus
@@ -30,9 +31,6 @@ class MenuBarOptions(Enum):
 
 # main window of application
 class MainWindow(QMainWindow):
-    simulation_process: Process
-    _map_save: MapSave
-
     def __init__(self):
         """ constructor """
 
@@ -50,7 +48,7 @@ class MainWindow(QMainWindow):
         # field to store which generation' animation is being played
         self._cur_generation_animation = 0
         # indicator of progress
-        self._progress_indicator = QLabel(f'1/{Settings.settings.number_of_generations}')
+        self._progress_indicator = QLabel(f'Generation: 1/{Settings.settings.number_of_generations}')
         # dict of actions, for easier access
         self._actions = {}
         #
@@ -77,8 +75,8 @@ class MainWindow(QMainWindow):
         # place container at the center
         self.setCentralWidget(self._container)
 
-        self.simulation_process = None
-        self._map_save = None
+        self.simulation_process: Process = None
+        self._map_save: MapSave = None
 
         return
 
@@ -170,6 +168,11 @@ class MainWindow(QMainWindow):
         # connect method that should be triggered
         switch_prev_gif_btn.clicked.connect(self.prev_gif_btn_clicked)
 
+        # repeat current generation's animation
+        repeat_gif_btn = QPushButton('Rep')
+        # connect method that should be triggered
+        repeat_gif_btn.clicked.connect(self.repeat_gif_btn_clicked)
+
         # switch to next generation's animation
         switch_next_gif_btn = QPushButton('Next')
         # connect method that should be triggered
@@ -177,6 +180,7 @@ class MainWindow(QMainWindow):
 
         mini_layout = QHBoxLayout()
         mini_layout.addWidget(switch_prev_gif_btn)
+        mini_layout.addWidget(repeat_gif_btn)
         mini_layout.addWidget(switch_next_gif_btn)
 
         # what submission buttons to use - save and cancel
@@ -230,24 +234,14 @@ class MainWindow(QMainWindow):
         try:
             # get path to saved population user wants to open.
             # take first element, since it is the path
-            filepath = QFileDialog.getOpenFileName()[0]
+            # ToDo: todo
+            # directory=config.SAVES_FOLDER_PATH
+            filepath = QFileDialog.getOpenFileName(directory=config.SIMULATION_SAVES_FOLDER_PATH)[0]
 
             # if file selected
             if filepath != '':
-                # open file for reading
-                with open(filepath, 'r') as f:
-                    # read contents and create MapSave object out of it
-                    # file is assumed to be json
-                    content = json.loads(f.read())
-
-                # content is assumed to be list of dict, where every dict represents Specimen object
-                # dict should contain genome at least, but can't contain location, as new world may have different
-                # dimension. ToDo: Specimen's constructor should be reworked.
-                population = []
-                for el in content:
-                    population.append(Specimen(**el))
-
-                return population
+                with open(filepath, "rb") as file:
+                    return pickle.load(file)
 
         except Exception as e:
             print(e)
@@ -296,7 +290,7 @@ class MainWindow(QMainWindow):
         try:
             # get path to saved plane user wants to open.
             # open dialog box in default spot (saves folder), take first element, since it is the path
-            filepath = QFileDialog.getOpenFileName(directory=config.SAVES_FOLDER_PATH)[0]
+            filepath = QFileDialog.getOpenFileName(directory=config.PLANE_SAVES_FOLDER_PATH)[0]
 
             # if file selected
             if filepath != '':
@@ -330,8 +324,33 @@ class MainWindow(QMainWindow):
 
         # read selected map save file
         self._map_save = MainWindow.get_map_save()
+
         # example visualisation
         print(self._map_save)
+
+        if self._map_save.dim != Settings.settings.dim:
+            # ToDo: show some popup
+            self._map_save.dim = None
+
+        path = os.path.join(config.PLANE_SAVES_FOLDER_PATH, 'currently_loaded_plane')
+
+        try:
+            if self._map_save.dim is not None:
+                # ToDo: There is problem. Apparently 'plot_world' expects np.array objects, not just list.
+                plot_world(self._map_save.get_barrier_positions(), self._map_save.get_food_positions(), [None], path)
+            else:
+                plot_world([], [], [None], path)
+        except Exception as e:
+            print(e, 1)
+
+        try:
+            image = QImage(path)
+            image = image.scaled(config.MAP_DIM, config.MAP_DIM)
+
+            self._map.setPixmap(QPixmap.fromImage(image))
+        except Exception as e:
+            print(e, 2)
+
 
         return
 
@@ -344,15 +363,19 @@ class MainWindow(QMainWindow):
         return
 
     def update_(self):
-        self._progress_indicator.setText(f'{self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
+        self._progress_indicator.setText(f'Generation: {self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
 
-        try:
-            animation = QMovie(f'frames/gif_{self._uid}_gen_{self._cur_generation_animation}.gif')
+        # path to desired generation animation of current simulation
+        path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self._uid}', 'animation', f'generation_{self._cur_generation_animation}.gif')
+
+        if os.path.exists(path):
+            animation = QMovie(path)
             animation.setScaledSize(QSize(config.MAP_DIM, config.MAP_DIM))
             self._map.setMovie(animation)
             animation.start()
-        except Exception as e:
-            print(e)
+        else:
+            # ToDo: Make circle while loading
+            pass
 
         return
 
@@ -364,6 +387,11 @@ class MainWindow(QMainWindow):
         if self._cur_generation_animation < 0:
             self._cur_generation_animation = 0
 
+        self.update_()
+
+        return
+
+    def repeat_gif_btn_clicked(self):
         self.update_()
 
         return

@@ -5,6 +5,7 @@ import numpy as np
 import scipy
 
 import config
+from src.saves.Settings import Settings
 from src.world.LocationTypes import Coord, Conversions, Direction, Compass
 
 
@@ -21,6 +22,7 @@ class Grid:
         self.barriers = []
 
         self.pheromones = self.Pheromones(size_x, size_y)
+
         return
 
     def reset(self):
@@ -123,6 +125,9 @@ class Grid:
             self.grid = np.zeros((width, height), dtype=np.float64)
 
         def emit(self, x: int, y: int, direction: Direction):
+            if Settings.settings.disable_pheromones:
+                return
+
             strength = config.PHEROMONE_STRENGTH
             # print(
             # f"[DEBUG] Emit pheromones called with x={x}, y={y}, direction={direction.compass}, strength={strength}")
@@ -156,6 +161,9 @@ class Grid:
                             self.grid[nx, ny] += intensity
 
         def read(self, x: int, y: int, direction: Direction, axis: str) -> float:
+            if Settings.settings.disable_pheromones:
+                return 0
+
             """
             Reads pheromone values in a specific axis: forward, left, or right.
             Args:
@@ -189,6 +197,9 @@ class Grid:
             return pheromone_sum / max(1, count)
 
         def spread(self):
+            if Settings.settings.disable_pheromones:
+                return
+
             """
             Pheromone spread and decay using convolution.
             """

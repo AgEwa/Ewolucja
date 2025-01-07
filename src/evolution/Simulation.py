@@ -1,5 +1,4 @@
 import time
-import uuid
 from multiprocessing import Process
 
 from src.evolution.Operators import *
@@ -24,9 +23,9 @@ def new_generation_initialize(p_genomes: list) -> None:
     # look for empty spaces
     initials = np.argwhere(grid.data == Grid.EMPTY)
     # randomly select sufficient amount of spaces for population
-    selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
+    selected = initials[np.random.choice(initials.shape[0], size=Settings.settings.population_size, replace=False)]
 
-    for i in range(config.POPULATION_SIZE):
+    for i in range(Settings.settings.population_size):
         # create specimen and add it to population. Save its index (in population list), location (in grid) and
         # randomly generated genome
         population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), p_genomes[i][1:]))
@@ -42,10 +41,17 @@ def new_generation_initialize(p_genomes: list) -> None:
 def simulation(uid) -> None:
     """ main simulation function """
 
-    # name of folder to store frames
-    folder_name = 'frames'
-    if not os.path.exists(folder_name):
-        os.mkdir(folder_name)
+    # path to saves for current simulation
+    sim_folder_path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}')
+    # create saves directory for current simulation
+    if not os.path.exists(sim_folder_path):
+        os.mkdir(sim_folder_path)
+    # path to saved frames of generations of current simulation
+    sim_frames_folder_path = os.path.join(sim_folder_path, 'animation')
+    # create directory for frames of generations of current simulation
+    if not os.path.exists(sim_frames_folder_path):
+        os.mkdir(sim_frames_folder_path)
+
     # unique ID for current simulation
     logging.info(f"Simulation id: {uid}")
     # names of frames
@@ -57,28 +63,28 @@ def simulation(uid) -> None:
     # initialize_world()
     # initialize_population()
 
-    if config.SAVE:
+    if Settings.settings.SAVE:
         save_helper = SavingHelper(uid)
         save_helper.start_writers()
 
     # simulation loop
-    for generation in range(config.NUMBER_OF_GENERATIONS):
+    for generation in range(Settings.settings.number_of_generations):
         logging.info(f"Gen {generation} started.")
         gen_start = time.time()
         # add population state frame before actions
-        if config.SAVE_ANIMATION:
-            save_path_name = os.path.join(folder_name, f'gif_{uid}_gen_{generation}_frame_0.png')
+        if Settings.settings.SAVE_ANIMATION:
+            save_path_name = os.path.join(sim_frames_folder_path, f'generation_{generation}_frame_0.png')
             p = Process(target=plot_world, args=(
-            grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
+                grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
             p.start()
             plot_processes.append(p)
             filenames.append(save_path_name)
         # every generation
-        for step in range(config.STEPS_PER_GENERATION):
+        for step in range(Settings.settings.steps_per_generation):
             # has some time (in form of steps) to do something
 
             count_dead = population_step()
-            if count_dead == config.POPULATION_SIZE:
+            if count_dead == Settings.settings.population_size:
                 break
 
             # execute kill actions
@@ -89,24 +95,24 @@ def simulation(uid) -> None:
             grid.pheromones.spread()
 
             # add population state frame after one generation actions
-            if config.SAVE_ANIMATION:
-                save_path_name = os.path.join(folder_name, f'gif_{uid}_gen_{generation}_frame_{step + 1}.png')
+            if Settings.settings.SAVE_ANIMATION:
+                save_path_name = os.path.join(sim_frames_folder_path, f'generation_{generation}_frame_{step + 1}.png')
                 p = Process(target=plot_world, args=(
-                grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
+                    grid.barriers.copy(), grid.food_data.copy(), population.copy(), save_path_name))
                 p.start()
                 plot_processes.append(p)
                 filenames.append(save_path_name)
 
-            if config.SAVE_EVOLUTION_STEP:
+            if Settings.settings.SAVE_EVOLUTION_STEP:
                 save_helper.save_step(generation, step, count_dead)
 
         probabilities, selected_idx = evaluate_and_select()
         genomes_for_new_population = reproduce(probabilities, selected_idx)
 
-        if config.SAVE_SELECTION:
+        if Settings.settings.SAVE_SELECTION:
             save_helper.save_selection(generation, selected_idx)
 
-        if config.SAVE_GENERATION:
+        if Settings.settings.SAVE_GENERATION:
             save_helper.save_gen(generation)
 
         wait_start = time.time()
@@ -115,9 +121,9 @@ def simulation(uid) -> None:
         logging.info(f"Waited {time.time() - wait_start}s for plot processes.")
         plot_processes.clear()
         # compose frames into animation
-        if config.SAVE_ANIMATION:
+        if Settings.settings.SAVE_ANIMATION:
             p = Process(target=to_gif, args=(
-            os.path.join(folder_name, f'gif_{uid}_gen_{generation}'), filenames.copy()))
+                os.path.join(sim_frames_folder_path, f'generation_{generation}'), filenames.copy()))
             p.start()
             gif_processes.append(p)
 
@@ -126,30 +132,32 @@ def simulation(uid) -> None:
         new_generation_initialize(genomes_for_new_population)
         logging.info(f"Gen {generation} took {time.time() - gen_start}s.")
 
-    if config.SAVE_POPULATION:
+    if Settings.settings.SAVE_POPULATION:
         save_helper.save_pop()
 
-    if config.SAVE_CONFIG:
+    if Settings.settings.SAVE_CONFIG:
         save_helper.save_config()
 
-    if config.SAVE_GRID:
+    if Settings.settings.SAVE_GRID:
         save_helper.save_grid()
 
     wait_start = time.time()
     for p in gif_processes:
         p.join()
     logging.info(f"Waited {time.time() - wait_start}s for gif processes.")
-    if config.SAVE:
+    if Settings.settings.SAVE:
         save_helper.close_writers()
+
+    return
 
 
 def population_step() -> int:
     count_dead = 0
-    for specimen_idx in range(1, config.POPULATION_SIZE + 1):
+    for specimen_idx in range(1, Settings.settings.population_size + 1):
         # if it is alive
         if population[specimen_idx].alive:
             # mutation
-            if probability(config.MUTATION_PROBABILITY):
+            if probability(Settings.settings.mutation_probability):
                 mutate(population[specimen_idx])
 
             # let it take some actions

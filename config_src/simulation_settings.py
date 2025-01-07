@@ -31,7 +31,6 @@ FOOD_INCREASED_MAX_LEVEL = 0.1
 ENERGY_PER_ONE_UNIT_OF_MOVE = 0.2
 ENTRY_MAX_ENERGY_LEVEL = 10  # = 5 food, = 50 units of movement
 MAX_ENERGY_LEVEL_SUPREMUM = 50  # 400 times increased, allows for 25 food and 200 units of movement
-ENERGY_DECREASE_IN_TIME = ENTRY_MAX_ENERGY_LEVEL / STEPS_PER_GENERATION
 
 ## mutation ##
 
@@ -45,8 +44,6 @@ MUTATE_N_GENES = 2
 # in binary representation of gene negate MUTATE_N_BITS neighbouring bits
 # cannot be bigger than number of bits in decoded gene, i.e. gene has 8 hexadecimal characters = 4 * 8 = 32 bits
 MUTATE_N_BITS = 2
-
-SELECT_N_SPECIMENS = max(int(0.1 * POPULATION_SIZE), 2)
 
 ## Pheromones ##
 DISABLE_PHEROMONES = False
@@ -63,6 +60,3 @@ SAVE_SELECTION = True
 SAVE_POPULATION = True
 SAVE_GRID = True
 SAVE_CONFIG = True
-SAVE = SAVE_EVOLUTION_STEP or SAVE_GENERATION or SAVE_SELECTION or SAVE_POPULATION or SAVE_GRID or SAVE_CONFIG
-
-SAVE_FOLDER = "saved"

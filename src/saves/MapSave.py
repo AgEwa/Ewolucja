@@ -2,18 +2,20 @@ import json
 from dataclasses import dataclass, field
 
 import config
+from src.saves.Settings import Settings
 
 
 def correct_positions(positions_list: list[list]):
     corrected = []
     for pos in positions_list:
-        corrected.append((pos[0], config.HEIGHT - pos[1] - 1))
+        corrected.append((pos[0], Settings.settings.dim - pos[1] - 1))
     return corrected
 
 
 @dataclass
 # describes map save
 class MapSave:
+    dim: int = config.DIM
     barrier_positions: list = field(default_factory=list)
     food_positions: list = field(default_factory=list)
 

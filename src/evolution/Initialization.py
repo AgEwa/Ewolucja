@@ -1,7 +1,4 @@
-import logging
 import random
-import time
-from multiprocessing import freeze_support, set_start_method
 
 import numpy as np
 
@@ -17,8 +14,9 @@ from src.world.LocationTypes import Coord
 
 
 def initialize_simulation(map_save: MapSave = None, uid=None):
-    settings = Settings.read()
-    settings.update_configs()
+    # this function called as process, so settings needs to be read
+    Settings.read()
+
     if map_save:
         assert (grid.data == Grid.EMPTY).all()
         assert not grid.food_data
@@ -27,8 +25,12 @@ def initialize_simulation(map_save: MapSave = None, uid=None):
         grid.set_food_sources_at_indexes(map_save.get_food_positions())
     else:
         initialize_world()
+
     initialize_population()
+
     simulation(uid)
+
+    return
 
 
 def initialize_world():
@@ -49,6 +51,8 @@ def initialize_world():
     food_placement = random.sample(places_left, config.FOOD_SOURCES_NUMBER)
     grid.set_food_sources_at_indexes(food_placement)
 
+    return
+
 
 def initialize_population() -> None:
     """
@@ -58,30 +62,14 @@ def initialize_population() -> None:
     # look for empty spaces
     initials = np.argwhere(grid.data == Grid.EMPTY)
     # randomly select sufficient amount of spaces for population
-    selected = initials[np.random.choice(initials.shape[0], size=config.POPULATION_SIZE, replace=False)]
+    selected = initials[np.random.choice(initials.shape[0], size=Settings.settings.population_size, replace=False)]
 
-    for i in range(config.POPULATION_SIZE):
+    for i in range(Settings.settings.population_size):
         # create specimen and add it to population. Save its index (in population list), location (in grid) and
         # randomly generated genome
         population.append(Specimen(i + 1, Coord(
-            selected[i, 0].item(), selected[i, 1].item()), initialize_genome(config.GENOME_LENGTH)))
+            selected[i, 0].item(), selected[i, 1].item()), initialize_genome(Settings.settings.genome_length)))
         # place index (reference to population list) on grid
         grid.data[selected[i][0], selected[i][1]] = i + 1
 
     return
-
-
-def main():
-    """ starting point of application """
-    start = time.time()
-    initialize_simulation()
-    logging.info(f"Simulation took {time.time() - start}s.")
-
-    return
-
-
-if __name__ == '__main__':
-    # add support for freezing for Windows, otherwise no effect
-    freeze_support()
-    set_start_method('spawn')
-    main()

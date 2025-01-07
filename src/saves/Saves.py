@@ -19,6 +19,16 @@ class Saves:
             # create it
             os.mkdir(config.SAVES_FOLDER_PATH)
 
+        # if there is no planes saves folder
+        if not os.path.exists(config.PLANE_SAVES_FOLDER_PATH):
+            # create it
+            os.mkdir(config.PLANE_SAVES_FOLDER_PATH)
+
+        # if there is no simulations saves folder
+        if not os.path.exists(config.SIMULATION_SAVES_FOLDER_PATH):
+            # create it
+            os.mkdir(config.SIMULATION_SAVES_FOLDER_PATH)
+
         # if there is no settings file
         if not os.path.exists(config.SETTINGS_PATH):
             # create new one with default values

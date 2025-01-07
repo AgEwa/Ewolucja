@@ -11,9 +11,10 @@ import config
 from src.external import grid, population, move_queue, kill_set
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.Specimen import Specimen
+from src.saves.Settings import Settings
 from src.utils.utils import initialize_genome, drain_move_queue, drain_kill_queue, probability
 from src.world.Grid import Grid
-from world.LocationTypes import Coord
+from src.world.LocationTypes import Coord
 
 
 def make_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -> str:
@@ -32,9 +33,7 @@ def make_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -> str:
     cmap = mpl.colormaps['gray']
     cmap.set_bad(color='white')
     ax.matshow(field_to_color, interpolation=None, cmap=cmap)
-    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False,
-                   labeltop=False, labelright=False,
-                   labelleft=False)
+    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelright=False, labelleft=False)
 
     name = os.path.join(p_folder_name, f'{p_plot_name}.png')
 
@@ -90,8 +89,8 @@ def initialize_population() -> None:
     for i in range(config.POPULATION_SIZE):
         # create specimen and add it to population. Save its index (in population list), location (in grid) and
         # randomly generated genome
-        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()),
-                                   initialize_genome(config.GENOME_LENGTH)))
+        population.append(Specimen(i + 1, Coord(
+            selected[i, 0].item(), selected[i, 1].item()), initialize_genome(config.GENOME_LENGTH)))
         # place index (reference to population list) on grid
         grid.data[selected[i][0], selected[i][1]] = i + 1
 
@@ -264,9 +263,7 @@ def simulation() -> None:
         # calculate probabilities
         probabilities = pre_sigmoid / np.sum(pre_sigmoid)
         # acquire random indexes according to probabilities calculated step above
-        selected_idx = np.random.choice(range(1, config.POPULATION_SIZE + 1), size=config.SELECT_N_SPECIMENS,
-                                        replace=False,
-                                        p=probabilities)
+        selected_idx = np.random.choice(range(1, config.POPULATION_SIZE + 1), size=Settings.settings.SELECT_N_SPECIMENS, replace=False, p=probabilities)
 
         pre_sigmoid = np.exp(adaptation_function_value[selected_idx - 1])
         probabilities = pre_sigmoid / np.sum(pre_sigmoid)
@@ -291,15 +288,3 @@ def simulation() -> None:
             filenames.clear()
 
         new_generation_initialize(genomes_for_new_population)
-
-
-def main():
-    """ starting point of application """
-
-    simulation()
-
-    return
-
-
-if __name__ == '__main__':
-    main()

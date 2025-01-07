@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QMainWindow, QFrame, QHBoxLayout, QVBoxLayout, QDial
 import config
 from src.gui.Map import Map, MarkType
 from src.saves.MapSave import MapSave
+from src.saves.Settings import Settings
 
 
 # new plane creator
@@ -148,11 +149,11 @@ class NewPlaneCreator(QMainWindow):
 
         try:
             # create MapSave object out of data returned by interactive map
-            map_save = MapSave(*(self._map.get_marked_data()))
+            map_save = self._map.get_marked_data()
 
             # get destination where user wants to store saved plane
             # default directory to saves directory, allow only .json endings, take first element, since it is the path
-            filename = QFileDialog.getSaveFileName(self, 'Save file', config.SAVES_FOLDER_PATH, 'Text files (*.json)')[
+            filename = QFileDialog.getSaveFileName(self, 'Save file', config.PLANE_SAVES_FOLDER_PATH, 'Text files (*.json)')[
                 0]
 
             # if file selected

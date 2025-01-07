@@ -4,6 +4,7 @@ import config
 from src.external import move_queue, grid, kill_set
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.SensorActionEnums import ActionType
+from src.saves.Settings import Settings
 from src.utils.Plot import visualize_neural_network
 from src.utils.utils import squeeze, response_curve, probability
 from src.world.LocationTypes import Direction, Conversions, Coord
@@ -12,7 +13,7 @@ max_long_probe_dist = 32
 
 
 def get_max_energy_level_from_genome(hex_gene: str) -> int:
-    return int(hex_gene, 16) % config.MAX_ENERGY_LEVEL_SUPREMUM
+    return int(hex_gene, 16) % Settings.settings.max_energy_level_supremum
 
 
 move_actions = {
@@ -45,7 +46,7 @@ class Specimen:
         self.last_movement_direction = Direction.random()
         # Coord object with x/y values of movement in that direction
         self.last_movement = Coord(0, 0)
-        self.max_energy = config.ENTRY_MAX_ENERGY_LEVEL
+        self.max_energy = Settings.settings.entry_max_energy_level
         self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
         self.genome = p_genome
         self.brain = NeuralNetwork(p_genome, self)
@@ -58,13 +59,13 @@ class Specimen:
     def use_energy(self, value: float):
         self.energy -= value
 
-        if self.energy < min(config.ENERGY_PER_ONE_UNIT_OF_MOVE, config.ENERGY_DECREASE_IN_TIME):
+        if self.energy < min(config.ENERGY_PER_ONE_UNIT_OF_MOVE, Settings.settings.ENERGY_DECREASE_IN_TIME):
             self.energy = 0
             self.alive = False
 
     def eat(self):
         # try to increase max energy level
-        if self.max_energy < config.MAX_ENERGY_LEVEL_SUPREMUM:
+        if self.max_energy < Settings.settings.max_energy_level_supremum:
             self.max_energy += config.FOOD_INCREASED_MAX_LEVEL
         # update energy
         self.energy += config.FOOD_ADDED_ENERGY
@@ -75,7 +76,7 @@ class Specimen:
     def live(self):
         """ age the specimen and simulate living"""
         self.age += 1
-        self.use_energy(config.ENERGY_DECREASE_IN_TIME)
+        self.use_energy(Settings.settings.ENERGY_DECREASE_IN_TIME)
 
         if not self.alive:
             return
@@ -123,12 +124,13 @@ class Specimen:
         self.long_probe_dist = int(level)
 
     def _emit_pheromone(self, value):
-        emit_threshold = 0.1
-        level = squeeze(value)
-        level *= self.responsiveness_adj
+        if not Settings.settings.disable_pheromones:
+            emit_threshold = 0.1
+            level = squeeze(value)
+            level *= self.responsiveness_adj
 
-        if level > emit_threshold and probability(level) or config.FORCE_EMISSION_TEST:
-            grid.pheromones.emit(self.location.x, self.location.y, self.last_movement_direction)
+            if level > emit_threshold and probability(level) or config.FORCE_EMISSION_TEST:
+                grid.pheromones.emit(self.location.x, self.location.y, self.last_movement_direction)
 
     def _kill(self, value):
         kill_threshold = 0.5

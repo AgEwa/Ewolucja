@@ -8,6 +8,7 @@ import networkx as nx
 import numpy as np
 
 import config
+from src.saves.Settings import Settings
 
 type_to_color = {
     "SENSOR": "lightgreen",
@@ -43,15 +44,18 @@ def visualize_neural_network(graph: nx.MultiDiGraph):
 
 
 def plot_world(barriers, food_data, pop, save_path_name: str):
+    # 'cause is used in process, Settings object needs to be read again
+    Settings.read()
+
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.clear()
-    ax.set_xticks(np.arange(-0.5, config.DIM, 1))
-    ax.set_yticks(np.arange(-0.5, config.DIM, 1))
+    ax.set_xticks(np.arange(-0.5, Settings.settings.dim, 1))
+    ax.set_yticks(np.arange(-0.5, Settings.settings.dim, 1))
     ax.set_xticklabels([])
     ax.set_yticklabels([])
     ax.grid(color='gray', linestyle='-', linewidth=0.5)
-    ax.set_xlim(-0.5, config.DIM - 0.5)
-    ax.set_ylim(-0.5, config.DIM - 0.5)
+    ax.set_xlim(-0.5, Settings.settings.dim - 0.5)
+    ax.set_ylim(-0.5, Settings.settings.dim - 0.5)
     ax.margins(0)
 
     for loc in barriers:
