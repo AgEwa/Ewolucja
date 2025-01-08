@@ -1,0 +1,30 @@
+This is the instruction on how to run the application.
+
+First of all install python on your OS, as this is the programming language we used for ths application.
+
+In this guide we'll use command prompt (cmd), so pay attention to kind of slashes used ('\' on Windows and '/' on Linux).
+Clone (or download and extract zip) from https://github.com/AgEwa/Ewolucja.
+Let's assume you placed the project under 'project_name' directory:
+git clone https://github.com/AgEwa/Ewolucja project_name
+
+Move inside project directory:
+cd project_name
+
+Here we will install python virtual environment, so not to globally install packages:
+python -m venv .venv
+
+After we activate venv:
+.venv\Scripts\activate
+
+Now you should see '(.venv)' at the start of command line. This means you are in activate virtual environment.
+Let's install needed python dependencies with:
+pip install -r requirements.txt
+
+The last step is to actually run the application. Use the next:
+python src\gui\app.py
+It will launch a window application.
+
+After application is finished (main window closed AND all simulation processes ended) you'll see so in command line.
+
+In order to exit venv use:
+deactivate

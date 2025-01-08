@@ -2,6 +2,12 @@ from multiprocessing import set_start_method, freeze_support
 
 from PyQt6.QtWidgets import QApplication
 
+# the next three lines needed for application to be run from command line.
+from pathlib import Path
+import sys, os
+# essentially points where root of project is located, so imports like src.* and config are found.
+sys.path.append(Path(os.path.realpath(__file__)).parent.parent.parent.absolute().__str__())
+
 from src.gui.MainWindow import MainWindow
 from src.saves.SavesStarter import SavesStarter
 from src.saves.Settings import Settings
