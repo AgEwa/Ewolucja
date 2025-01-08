@@ -1,6 +1,7 @@
 This is the instruction on how to run the application.
 
 First of all install python on your OS, as this is the programming language we used for ths application.
+The most recent versions of python and pip are required (python-3.13 and pip-24.3.1).
 
 In this guide we'll use command prompt (cmd), so pay attention to kind of slashes used ('\' on Windows and '/' on Linux).
 Clone (or download and extract zip) from https://github.com/AgEwa/Ewolucja.
