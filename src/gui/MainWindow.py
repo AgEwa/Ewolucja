@@ -344,12 +344,10 @@ class MainWindow(QMainWindow):
         return
 
     def update_(self):
-        self._progress_indicator.setText(
-            f'Generation: {self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
+        self._progress_indicator.setText(f'Generation: {self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
 
         # path to desired generation animation of current simulation
-        path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self._uid}', 'animation',
-                            f'generation_{self._cur_generation_animation}.gif')
+        path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self._uid}', 'animation', f'generation_{self._cur_generation_animation}.gif')
 
         if os.path.exists(path):
             animation = QMovie(path)
@@ -357,7 +355,13 @@ class MainWindow(QMainWindow):
             self._map.setMovie(animation)
             animation.start()
         else:
-            # ToDo: Make circle while loading
+            msg = 'Trying to find animation...'
+            loading = QLabel(msg)
+            layout = QHBoxLayout()
+            layout.addWidget(loading)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._map.setLayout(layout)
+
             pass
 
         return
@@ -396,9 +400,16 @@ class MainWindow(QMainWindow):
 
         self._uid = uuid.uuid4()
 
-        self.simulation_process = Process(target=initialize_simulation,
-                                          args=(self._plane_save, self._uid, self._population_file))
+        self.simulation_process = Process(target=initialize_simulation, args=(
+            self._plane_save, self._uid, self._population_file))
         self.simulation_process.start()
+
+        msg = 'Trying to find animation...'
+        loading = QLabel(msg)
+        layout = QHBoxLayout()
+        layout.addWidget(loading)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._map.setLayout(layout)
 
         return
 
