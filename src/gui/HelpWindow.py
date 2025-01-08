@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QFrame
 
 
-class InfoWindow(QMainWindow):
+class HelpWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
@@ -17,7 +17,7 @@ class InfoWindow(QMainWindow):
         container = QFrame()
         container.setLayout(layout)
 
-        self.setWindowTitle('Info')
+        self.setWindowTitle('Help')
 
         self.setCentralWidget(container)
 

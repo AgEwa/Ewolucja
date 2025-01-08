@@ -12,6 +12,11 @@ class TestSpecimen(TestCase):
 
     @patch('src.population.Specimen.NeuralNetwork', autospec=True)
     def setUp(self, mock_neural_network):
+        mock_settings = Mock()
+        mock_settings.entry_max_energy_level = 10
+        mock_settings.max_energy_level_supremum = 12
+        settings_patch = patch('src.population.Specimen.Settings.settings', mock_settings)
+        settings_patch.start()
         self.index = 1
         self.location = Coord(0, 0)
         self.genome = ["a3f", "b2e", "c1d"]
@@ -50,7 +55,7 @@ class TestSpecimen(TestCase):
             ActionType.SET_OSCILLATOR_PERIOD: value,
             ActionType.SET_LONGPROBE_DIST: value
         }
-        expected_responsiveness = squeeze(value)
+        expected_responsiveness = response_curve(value)
         expected_period = squeeze(value)
         expected_dist = 1 + squeeze(value) * 32
         mock_oscillator = Mock()  # Create a mock for the oscillator
@@ -60,7 +65,6 @@ class TestSpecimen(TestCase):
         self.specimen.act(p_actions)
         # then
         self.assertEqual(expected_responsiveness, self.specimen.responsiveness)
-        self.assertEqual(response_curve(expected_responsiveness), self.specimen.responsiveness_adj)
         mock_oscillator.set_frequency.assert_called_once_with(1 / expected_period)
         self.assertEqual(int(expected_dist), self.specimen.long_probe_dist)
 

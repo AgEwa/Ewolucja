@@ -3,22 +3,22 @@ import random
 
 import numpy as np
 
-import config
 from src.external import population
 from src.population.NeuralNetwork import NeuralNetwork
 from src.population.Specimen import Specimen
+from src.saves.Settings import Settings
 from src.utils.utils import probability
 
 
 def mutate(p_specimen: Specimen) -> None:
     """ makes given specimen mutate """
-    if len(p_specimen.genome) != config.GENOME_LENGTH:
-        assert len(p_specimen.genome) == config.GENOME_LENGTH
+    if len(p_specimen.genome) != Settings.settings.genome_length:
+        assert len(p_specimen.genome) == Settings.settings.genome_length
 
     genome = p_specimen.genome.copy()
 
     # select random genes from genome
-    selected_idx = random.sample(range(len(genome)), config.MUTATE_N_GENES)
+    selected_idx = random.sample(range(len(genome)), Settings.settings.mutate_n_genes)
     selected = [genome[x] for x in range(len(genome)) if x in selected_idx]
 
     genome = [genome[x] for x in range(len(genome)) if x not in selected_idx]
@@ -34,8 +34,8 @@ def mutate(p_specimen: Specimen) -> None:
         # find index from which bits will be negated
         # since randint includes boundaries, we do from 0 to len - 1
         # but also considering how many bits we want to negate we subtract that number from the end
-        idx = random.randint(0, len(binary) - 1 - config.MUTATE_N_BITS)
-        for b in range(idx, idx + config.MUTATE_N_BITS):
+        idx = random.randint(0, len(binary) - Settings.settings.mutate_n_bits)
+        for b in range(idx, idx + Settings.settings.mutate_n_bits):
             binary[b] = '0' if binary[b] == '1' else '1'
         # convert it back to hex
         selected[i] = '{:08x}'.format(int(''.join(binary), 2))
@@ -43,7 +43,7 @@ def mutate(p_specimen: Specimen) -> None:
     # update genome
     assert all(len(gene) == 8 for gene in selected)
     genome = genome + selected
-    assert len(genome) == config.GENOME_LENGTH
+    assert len(genome) == Settings.settings.genome_length
     p_specimen.genome = genome
     p_specimen.brain = NeuralNetwork(genome, p_specimen)
 
@@ -53,27 +53,27 @@ def mutate(p_specimen: Specimen) -> None:
 def crossover_get_genomes(p_parent_a: Specimen, p_parent_b: Specimen) -> tuple[list, list]:
     # how many genes from parent_a will go to child_a
     # at least one up to GENOME_LENGTH - 1
-    a_2_a_size = np.random.choice(range(config.GENOME_LENGTH - 1))
+    a_2_a_size = np.random.choice(range(Settings.settings.genome_length - 1))
     # how many genes from parent_b will go to child_a
     # compatible to GENOME_LENGTH
-    b_2_a_size = config.GENOME_LENGTH - a_2_a_size
+    b_2_a_size = Settings.settings.genome_length - a_2_a_size
 
     # parent_a's genes for child_a indexes
-    a_2_a_genes_idx = np.random.choice(config.GENOME_LENGTH, size=a_2_a_size, replace=False)
+    a_2_a_genes_idx = np.random.choice(Settings.settings.genome_length, size=a_2_a_size, replace=False)
     # parent_b's genes for child_a indexes
-    b_2_a_genes_idx = np.random.choice(config.GENOME_LENGTH, size=b_2_a_size, replace=False)
+    b_2_a_genes_idx = np.random.choice(Settings.settings.genome_length, size=b_2_a_size, replace=False)
 
     # parent_a's genes for child_a
-    a_2_a_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+    a_2_a_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(Settings.settings.genome_length) if
                    gene_idx in a_2_a_genes_idx]
     # parent_a's genes for child_b
-    a_2_b_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+    a_2_b_genes = [p_parent_a.genome[gene_idx] for gene_idx in range(Settings.settings.genome_length) if
                    gene_idx not in a_2_a_genes_idx]
     # parent_b's genes for child_a
-    b_2_a_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+    b_2_a_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(Settings.settings.genome_length) if
                    gene_idx in b_2_a_genes_idx]
     # parent_b's genes for child_b
-    b_2_b_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(config.GENOME_LENGTH) if
+    b_2_b_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(Settings.settings.genome_length) if
                    gene_idx not in b_2_a_genes_idx]
 
     key = probability(0.5)
@@ -82,8 +82,8 @@ def crossover_get_genomes(p_parent_a: Specimen, p_parent_b: Specimen) -> tuple[l
 
     child_a_genome = a_2_a_genes + b_2_a_genes
     child_b_genome = a_2_b_genes + b_2_b_genes
-    assert len(child_a_genome) == config.GENOME_LENGTH
-    assert len(child_b_genome) == config.GENOME_LENGTH
+    assert len(child_a_genome) == Settings.settings.genome_length
+    assert len(child_b_genome) == Settings.settings.genome_length
 
     child_a_genome = [child_a_max_energy_value] + child_a_genome
     child_b_genome = [child_b_max_energy_value] + child_b_genome
@@ -96,7 +96,7 @@ def reproduce(probabilities, selected_idx):
     # every two parents give two children, and we want to have population of POPULATION_SIZE size
     # so there should be POPULATION_SIZE / 2 pairs of children and such POPULATION_SIZE / 2 crossovers
     # add + 1 extra pair if POPULATION_SIZE is odd
-    for _ in range(int(config.POPULATION_SIZE / 2) + 1):
+    for _ in range(int(Settings.settings.population_size / 2) + 1):
         # randomly select two parents
         parent_a_idx, parent_b_idx = np.random.choice(selected_idx, size=2, replace=False, p=probabilities)
         # cross them and get their children's genomes
@@ -109,10 +109,10 @@ def reproduce(probabilities, selected_idx):
 
 def evaluate_and_select():
     # initiate storage for energy
-    current_energy = np.zeros(config.POPULATION_SIZE)
-    maximum_energy = np.zeros(config.POPULATION_SIZE)
+    current_energy = np.zeros(Settings.settings.population_size)
+    maximum_energy = np.zeros(Settings.settings.population_size)
     # fill with values
-    for specimen_idx in range(1, config.POPULATION_SIZE + 1):
+    for specimen_idx in range(1, Settings.settings.population_size + 1):
         current_energy[specimen_idx - 1] = population[specimen_idx].energy
         maximum_energy[specimen_idx - 1] = population[specimen_idx].max_energy
     # selection
@@ -125,21 +125,23 @@ def evaluate_and_select():
     return probabilities, selected_idx + 1
 
 
-def select_best(adaptation_values: list, energy: list):
+def select_best(adaptation_values: list, energy):
     non_zero = np.argwhere(energy).flatten()
-    if len(non_zero) < config.SELECT_N_SPECIMENS:
-        missing = config.SELECT_N_SPECIMENS - len(non_zero)
+    if len(non_zero) < Settings.settings.SELECT_N_SPECIMENS:
+        missing = Settings.settings.SELECT_N_SPECIMENS - len(non_zero)
+
         logging.info(f"Mising {missing} specimen with non-zero energy.")
+
         return np.concatenate((non_zero, np.argsort(adaptation_values)[-missing:]))
 
     values = [adaptation_values[i] if i in non_zero else 0 for i in range(len(adaptation_values))]
     values = np.array(values)
-    top = min(3, config.SELECT_N_SPECIMENS)
+    top = min(3, Settings.settings.SELECT_N_SPECIMENS)
     threshold = 0.67 * np.mean(values[np.argsort(values)[-top:]])
     selected_idx = np.argwhere(values > threshold).flatten()
 
-    if len(selected_idx) < config.SELECT_N_SPECIMENS:
-        threshold = values[np.argsort(values)[-config.SELECT_N_SPECIMENS]]
+    if len(selected_idx) < Settings.settings.SELECT_N_SPECIMENS:
+        threshold = values[np.argsort(values)[-Settings.settings.SELECT_N_SPECIMENS]]
         selected_idx = np.argwhere(values >= threshold).flatten()
 
     return selected_idx

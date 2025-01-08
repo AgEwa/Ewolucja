@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 
 from src.evolution.Operators import *
 from src.utils.utils import initialize_genome
@@ -10,16 +10,24 @@ class TestOperators(TestCase):
     @patch('src.evolution.Operators.NeuralNetwork', autospec=True)
     def setUp(self, mock_neural_network):
         """Set up common test data for the test cases."""
-        config.GENOME_LENGTH = 4
-        config.MUTATE_N_GENES = 2
-        config.MUTATE_N_BITS = 2
-        config.SELECT_N_SPECIMENS = 2
-        config.POPULATION_SIZE = 3
+        self.mock_settings = Mock()
+        self.mock_settings.genome_length = 4
+        self.mock_settings.mutate_n_genes = 2
+        self.mock_settings.mutate_n_bits = 2
+        self.mock_settings.disable_pheromones = False
+        self.mock_settings.max_number_of_inner_neurons = 2
+        self.mock_settings.entry_max_energy_level = 10
+        self.mock_settings.max_energy_level_supremum = 12
+        self.mock_settings.SELECT_N_SPECIMENS = 2
+        self.mock_settings.population_size = 3
+        settings_patch = patch('src.population.Specimen.Settings.settings', self.mock_settings)
+        settings_patch.start()
+
 
         # Create a mock specimen
         self.location = Coord(0, 0)
-        self.mock_genome = initialize_genome(config.GENOME_LENGTH)
-        self.other_genome = initialize_genome(config.GENOME_LENGTH)
+        self.mock_genome = initialize_genome(self.mock_settings.genome_length)
+        self.other_genome = initialize_genome(self.mock_settings.genome_length)
         self.mock_brain = MagicMock()
         mock_neural_network.return_value = self.mock_brain
         self.mock_specimen = Specimen(1, self.location, self.mock_genome.copy())
@@ -41,7 +49,7 @@ class TestOperators(TestCase):
         mutate(self.mock_specimen)
 
         # then
-        self.assertEqual(len(self.mock_specimen.genome), config.GENOME_LENGTH)
+        self.assertEqual(len(self.mock_specimen.genome), self.mock_settings.genome_length)
         # unselected genes remain unchanged
         for gene in self.mock_genome[2:]:
             self.assertIn(gene, self.mock_specimen.genome)
@@ -59,8 +67,8 @@ class TestOperators(TestCase):
         child_a, child_b = crossover_get_genomes(parent_a, parent_b)
 
         # then
-        self.assertEqual(len(child_a), config.GENOME_LENGTH + 1)
-        self.assertEqual(len(child_b), config.GENOME_LENGTH + 1)
+        self.assertEqual(len(child_a), self.mock_settings.genome_length + 1)
+        self.assertEqual(len(child_b), self.mock_settings.genome_length + 1)
         # check children's max energy
         self.assertTrue(child_a[0] == parent_a.max_energy or child_a[0] == parent_b.max_energy)
         self.assertTrue(child_b[0] == parent_a.max_energy or child_b[0] == parent_b.max_energy)
@@ -78,10 +86,10 @@ class TestOperators(TestCase):
             genomes = reproduce(probabilities, selected_idx)
 
         # then
-        self.assertGreaterEqual(len(genomes), config.POPULATION_SIZE)
-        self.assertLessEqual(len(genomes), config.POPULATION_SIZE + 1)
+        self.assertGreaterEqual(len(genomes), self.mock_settings.population_size)
+        self.assertLessEqual(len(genomes), self.mock_settings.population_size + 1)
         for genome in genomes:
-            self.assertEqual(len(genome), config.GENOME_LENGTH + 1)
+            self.assertEqual(len(genome), self.mock_settings.genome_length + 1)
 
     def test_evaluate_and_select(self):
         # when
@@ -90,7 +98,7 @@ class TestOperators(TestCase):
 
         # then
         self.assertAlmostEqual(np.sum(probabilities), 1.0)
-        self.assertGreaterEqual(len(selected_idx), config.SELECT_N_SPECIMENS)
+        self.assertGreaterEqual(len(selected_idx), self.mock_settings.SELECT_N_SPECIMENS)
 
     def test_select_best(self):
         # given
@@ -102,7 +110,7 @@ class TestOperators(TestCase):
 
         # then
         self.assertTrue(all(energy[idx] > 0 for idx in selected_idx))
-        self.assertGreaterEqual(len(selected_idx), config.SELECT_N_SPECIMENS)
+        self.assertGreaterEqual(len(selected_idx), self.mock_settings.SELECT_N_SPECIMENS)
 
     def test_select_best_for_missing_nonzeros(self):
         # given
@@ -117,7 +125,7 @@ class TestOperators(TestCase):
 
     def test_select_best_for_clear_lead(self):
         # given
-        config.SELECT_N_SPECIMENS = 5
+        self.mock_settings.SELECT_N_SPECIMENS = 5
         adaptation_values = [1, 1, 1, 5, 5, 5, 5, 15, 15, 15]
         energy = [1, 0, 3, 0, 2, 6, 0, 4, 9, 10]
 

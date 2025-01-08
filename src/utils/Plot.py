@@ -8,6 +8,7 @@ import networkx as nx
 import numpy as np
 
 import config
+from src.saves.Settings import Settings
 
 type_to_color = {
     "SENSOR": "lightgreen",
@@ -17,7 +18,7 @@ type_to_color = {
 BARRIER_COLOR = 'black'
 SPECIMEN_COLOR = {
     True: 'red',
-    False: "yellow"
+    False: "grey"
 }
 food_cmap = plt.cm.Greens
 norm = mcolors.Normalize(vmin=0, vmax=config.FOOD_PER_SOURCE_MAX)
@@ -43,15 +44,18 @@ def visualize_neural_network(graph: nx.MultiDiGraph):
 
 
 def plot_world(barriers, food_data, pop, save_path_name: str):
+    # 'cause is used in process, Settings object needs to be read again
+    Settings.read()
+
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.clear()
-    ax.set_xticks(np.arange(-0.5, config.DIM, 1))
-    ax.set_yticks(np.arange(-0.5, config.DIM, 1))
+    ax.set_xticks(np.arange(-0.5, Settings.settings.dim, 1))
+    ax.set_yticks(np.arange(-0.5, Settings.settings.dim, 1))
     ax.set_xticklabels([])
     ax.set_yticklabels([])
     ax.grid(color='gray', linestyle='-', linewidth=0.5)
-    ax.set_xlim(-0.5, config.DIM - 0.5)
-    ax.set_ylim(-0.5, config.DIM - 0.5)
+    ax.set_xlim(-0.5, Settings.settings.dim - 0.5)
+    ax.set_ylim(-0.5, Settings.settings.dim - 0.5)
     ax.margins(0)
 
     for loc in barriers:
@@ -63,7 +67,33 @@ def plot_world(barriers, food_data, pop, save_path_name: str):
         ax.add_patch(plt.Rectangle((loc[0] - 0.5, loc[1] - 0.5), 1, 1, color=food_color))
 
     for specimen in pop[1:]:
-        ax.plot(specimen.location.x, specimen.location.y, 'o', color=SPECIMEN_COLOR.get(specimen.alive))
+        ax.add_patch(plt.Circle((specimen.location.x, specimen.location.y), 0.5, color=SPECIMEN_COLOR.get(specimen.alive)))
+
+    plt.tight_layout()
+    plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    plt.savefig(save_path_name)
+    plt.close()
+
+    return
+
+
+def plot_plane(barriers, food_data, save_path_name: str):
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.clear()
+    # ax.set_xticks(np.arange(-0.5, Settings.settings.dim, 1))
+    # ax.set_yticks(np.arange(-0.5, Settings.settings.dim, 1))
+    # ax.set_xticklabels([])
+    # ax.set_yticklabels([])
+    # ax.grid(color='gray', linestyle='-', linewidth=0.5)
+    ax.set_xlim(-0.5, Settings.settings.dim - 0.5)
+    ax.set_ylim(-0.5, Settings.settings.dim - 0.5)
+    ax.margins(0)
+
+    for loc in barriers:
+        ax.add_patch(plt.Rectangle((loc[0] - 0.5, loc[1] - 0.5), 1, 1, color=BARRIER_COLOR))
+
+    for loc in food_data:
+        ax.add_patch(plt.Rectangle((loc[0] - 0.5, loc[1] - 0.5), 1, 1, color="green"))
 
     plt.tight_layout()
     plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
@@ -106,7 +136,8 @@ def make_simple_plot(p_matrix: np.array, p_folder_name: str, p_plot_name: str) -
     cmap = mpl.colormaps['gray']
     cmap.set_bad(color='white')
     ax.matshow(field_to_color, interpolation=None, cmap=cmap)
-    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelright=False, labelleft=False)
+    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False,
+                   labeltop=False, labelright=False, labelleft=False)
 
     name = os.path.join(p_folder_name, f'{p_plot_name}.png')
 

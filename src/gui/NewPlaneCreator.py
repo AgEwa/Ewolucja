@@ -3,13 +3,13 @@ from PyQt6.QtWidgets import QMainWindow, QFrame, QHBoxLayout, QVBoxLayout, QDial
     QFileDialog
 
 import config
-from src.gui.Map import Map, MarkType
-from src.saves.MapSave import MapSave
+from src.gui.Plane import Plane, MarkType
+from src.saves.PlaneSave import PlaneSave
 
 
 # new plane creator
 class NewPlaneCreator(QMainWindow):
-    def __init__(self, p_map_save: MapSave = None):
+    def __init__(self, p_map_save: PlaneSave = None):
         """ constructor, takes optional parameter p_map_save which places default spaces on map """
 
         # use derived constructor
@@ -18,7 +18,7 @@ class NewPlaneCreator(QMainWindow):
         # root widget in window, it is parent of everything else visible
         self._container = QFrame()
         # interactive map that you can click to edit it, init with p_map_save
-        self._map = Map(p_map_save)
+        self._map = Plane(p_map_save)
         # radio button to select what type of object to place on plane (barrier)
         self._barrier = QRadioButton('Barrier')
         # connect method that should be triggered
@@ -148,11 +148,11 @@ class NewPlaneCreator(QMainWindow):
 
         try:
             # create MapSave object out of data returned by interactive map
-            map_save = MapSave(*(self._map.get_marked_data()))
+            map_save = self._map.get_marked_data()
 
             # get destination where user wants to store saved plane
             # default directory to saves directory, allow only .json endings, take first element, since it is the path
-            filename = QFileDialog.getSaveFileName(self, 'Save file', config.SAVES_FOLDER_PATH, 'Text files (*.json)')[
+            filename = QFileDialog.getSaveFileName(self, 'Save file', config.PLANE_SAVES_FOLDER_PATH, 'Text files (*.json)')[
                 0]
 
             # if file selected

@@ -11,7 +11,7 @@ class TestPheromones(unittest.TestCase):
         super().__init__(methodName)
 
     def setUp(self):
-        self.grid_mock = Grid(size_x=5, size_y=5)
+        self.grid_mock = Grid(5)
 
     def test_emit_pheromones(self):
         x, y = 2, 3
@@ -43,15 +43,15 @@ class TestPheromones(unittest.TestCase):
 
         emitted_grid = self.grid_mock.pheromones.grid
 
-        for i in range(self.grid_mock.width):
+        for i in range(self.grid_mock.size):
             self.assertEqual(emitted_grid[0, i], 0, f"Top edge at (0, {i}) should not have pheromones.")
             self.assertEqual(emitted_grid[-1, i], 0,
-                             f"Bottom edge at ({self.grid_mock.height - 1}, {i}) should not have pheromones.")
+                             f"Bottom edge at ({self.grid_mock.size - 1}, {i}) should not have pheromones.")
 
-        for j in range(self.grid_mock.height):
+        for j in range(self.grid_mock.size):
             self.assertEqual(emitted_grid[j, 0], 0, f"Left edge at ({j}, 0) should not have pheromones.")
             self.assertEqual(emitted_grid[j, -1], 0,
-                             f"Right edge at ({j}, {self.grid_mock.width - 1}) should not have pheromones.")
+                             f"Right edge at ({j}, {self.grid_mock.size - 1}) should not have pheromones.")
         # print(emitted_grid)
 
     def test_emit_strength_decreases_with_distance(self):
@@ -115,9 +115,9 @@ class TestPheromones(unittest.TestCase):
         self.assertGreater(self.grid_mock.pheromones.grid[2, 2], 0.0,
                            "Neighboring cells should have increased intensity due to diffusion.")
         self.assertEqual(self.grid_mock.pheromones.grid[0, 0], 0.0, "Boundary cells should always remain zero.")
-        self.assertEqual(self.grid_mock.pheromones.grid[self.grid_mock.pheromones.width - 1, 0], 0.0,
+        self.assertEqual(self.grid_mock.pheromones.grid[self.grid_mock.pheromones.size - 1, 0], 0.0,
                          "Boundary cells should always remain zero.")
-        self.assertEqual(self.grid_mock.pheromones.grid[0, self.grid_mock.pheromones.height - 1], 0.0,
+        self.assertEqual(self.grid_mock.pheromones.grid[0, self.grid_mock.pheromones.size - 1], 0.0,
                          "Boundary cells should always remain zero.")
 
 

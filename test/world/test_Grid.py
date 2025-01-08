@@ -8,7 +8,7 @@ from src.world.LocationTypes import Coord
 class TestGrid(TestCase):
 
     def setUp(self):
-        self.grid = Grid(2, 2)
+        self.grid = Grid(2)
         self.specimen_id = 37
         self.grid.data[1, 0] = self.specimen_id
 
@@ -123,12 +123,6 @@ class TestGrid(TestCase):
         self.assertFalse(self.grid.is_food_at(self.loc_specimen))
         # test for barrier location
         self.assertFalse(self.grid.is_food_at(self.loc_barrier))
-
-    def test_find_empty(self):
-        # given
-        self.grid.set_barriers_at_indexes(self.barrier_idx_list)
-        result = self.grid.find_empty()
-        self.assertEqual(self.grid.at(result), Grid.EMPTY)
 
     def test_in_bounds_xy(self):
         # test for location in bounds

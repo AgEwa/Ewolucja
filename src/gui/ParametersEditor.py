@@ -86,6 +86,34 @@ class ParametersEditor(QMainWindow):
         self.grid_dim.setMaximum(100)
         self.grid_dim.setValue(Settings.settings.dim)
 
+        # input responsible for disabling and enabling saving of animation
+        self.save_animation = QCheckBox()
+        self.save_animation.setChecked(Settings.settings.SAVE_ANIMATION)
+
+        # input responsible for disabling and enabling saving of animation
+        self.save_evolution_step = QCheckBox()
+        self.save_evolution_step.setChecked(Settings.settings.SAVE_EVOLUTION_STEP)
+
+        # input responsible for disabling and enabling saving of animation
+        self.save_generation = QCheckBox()
+        self.save_generation.setChecked(Settings.settings.SAVE_GENERATION)
+
+        # input responsible for disabling and enabling saving of animation
+        self.save_selection = QCheckBox()
+        self.save_selection.setChecked(Settings.settings.SAVE_SELECTION)
+
+        # input responsible for disabling and enabling saving of animation
+        self.save_population = QCheckBox()
+        self.save_population.setChecked(Settings.settings.SAVE_POPULATION)
+
+        # input responsible for disabling and enabling saving of animation
+        self.enable_kill = QCheckBox()
+        self.enable_kill.setChecked(Settings.settings.enable_kill)
+
+        # input responsible for disabling and enabling saving of animation
+        self.save_config = QCheckBox()
+        self.save_config.setChecked(Settings.settings.SAVE_CONFIG)
+
         self._parameters = QFrame()
         self._container = QFrame(self)
 
@@ -149,6 +177,30 @@ class ParametersEditor(QMainWindow):
         parameters_layout.addWidget(QLabel('Grid dimension:'), 3, 6)
         parameters_layout.addWidget(self.grid_dim, 3, 7)
 
+        # row 4
+        parameters_layout.addWidget(QLabel('Save animation:'), 4, 0)
+        parameters_layout.addWidget(self.save_animation, 4, 1)
+
+        parameters_layout.addWidget(QLabel('Save evolution step:'), 4, 3)
+        parameters_layout.addWidget(self.save_evolution_step, 4, 4)
+
+        parameters_layout.addWidget(QLabel('Save generation:'), 4, 6)
+        parameters_layout.addWidget(self.save_generation, 4, 7)
+
+        # row 5
+        parameters_layout.addWidget(QLabel('Save selection:'), 5, 0)
+        parameters_layout.addWidget(self.save_selection, 5, 1)
+
+        parameters_layout.addWidget(QLabel('Save population:'), 5, 3)
+        parameters_layout.addWidget(self.save_population, 5, 4)
+
+        parameters_layout.addWidget(QLabel('Save config:'), 5, 6)
+        parameters_layout.addWidget(self.save_config, 5, 7)
+
+        # row 6
+        parameters_layout.addWidget(QLabel('Enable kill action:'), 6, 0)
+        parameters_layout.addWidget(self.enable_kill, 6, 1)
+
         self._parameters.setLayout(parameters_layout)
 
         return
@@ -189,6 +241,13 @@ class ParametersEditor(QMainWindow):
         Settings.settings.entry_max_energy_level = self.start_energy.value()
         Settings.settings.max_energy_level_supremum = self.max_energy.value()
         Settings.settings.dim = self.grid_dim.value()
+        Settings.settings.SAVE_ANIMATION = self.save_animation.isChecked()
+        Settings.settings.SAVE_EVOLUTION_STEP = self.save_evolution_step.isChecked()
+        Settings.settings.SAVE_GENERATION = self.save_generation.isChecked()
+        Settings.settings.SAVE_SELECTION = self.save_selection.isChecked()
+        Settings.settings.SAVE_POPULATION = self.save_population.isChecked()
+        Settings.settings.enable_kill = self.enable_kill.isChecked()
+        Settings.settings.SAVE_CONFIG = self.save_config.isChecked()
 
         Settings.write()
 

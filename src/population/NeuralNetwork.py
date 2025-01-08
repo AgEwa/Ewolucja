@@ -1,25 +1,25 @@
 from math import tanh
 
-import config
 from src.population.Layer import Layer, LateralConnections, DirectConnections
 from src.population.Sensor import Sensor
 from src.population.SensorActionEnums import SensorType, ActionType, NeuronType
+from src.saves.Settings import Settings
 from src.utils.Oscilator import Oscillator
 from src.utils.utils import bin_to_signed_int
 
-sensors_num = len(list(SensorType)) if not config.DISABLE_PHEROMONES else len(list(SensorType)) - 3
-action_num = len(list(ActionType)) if not config.DISABLE_PHEROMONES else len(list(ActionType)) - 1
-
 
 def decode_connection(hex_gene: str) -> tuple[int, NeuronType, int, NeuronType, float]:
+    sensors_num = len(list(SensorType)) if not Settings.settings.disable_pheromones else len(list(SensorType)) - 3
+    action_num = len(list(ActionType)) if not Settings.settings.disable_pheromones else len(list(ActionType)) - 1
+
     bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)
 
     source_type = NeuronType.SENSOR if int(bin_gene[0]) == 0 else NeuronType.INNER
-    num_sources = sensors_num if source_type == NeuronType.SENSOR else config.MAX_NUMBER_OF_INNER_NEURONS
+    num_sources = sensors_num if source_type == NeuronType.SENSOR else Settings.settings.max_number_of_inner_neurons
     source_id = bin_to_signed_int(bin_gene[1:8]) % num_sources
 
     target_type = NeuronType.ACTION if int(bin_gene[8]) == 0 else NeuronType.INNER
-    num_targets = action_num if target_type == NeuronType.ACTION else config.MAX_NUMBER_OF_INNER_NEURONS
+    num_targets = action_num if target_type == NeuronType.ACTION else Settings.settings.max_number_of_inner_neurons
     target_id = bin_to_signed_int(bin_gene[9:16]) % num_targets
 
     weight = bin_to_signed_int(bin_gene[16:32]) / 8000  # make it a float from around (-4,4)
@@ -67,7 +67,10 @@ class NeuralNetwork:
                     sensor_action.get(target_id).append((source_id, weight))
 
         self.layers = DirectConnections(sensor_action).add_activation_func(tanh)
-        self.layers.next(Layer(sensor_inner)).next(LateralConnections(inner_inner).add_activation_func(tanh)).next(Layer(inner_action))
+        self.layers.next(
+            Layer(sensor_inner)).next(
+            LateralConnections(inner_inner).add_activation_func(tanh)).next(
+            Layer(inner_action))
         used_sensors = self.layers.optimize(sensors_ids)
         # visualize_neural_network(self.layers.get_network())
         self.sensors = Sensor(used_sensors, self.specimen)

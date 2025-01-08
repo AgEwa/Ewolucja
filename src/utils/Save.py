@@ -10,7 +10,8 @@ import numpy as np
 
 import config
 from config_src import simulation_settings
-from src.external import population, grid
+from src.external import population
+from src.saves.Settings import Settings
 
 
 class SaveType(Enum):
@@ -22,20 +23,29 @@ class SaveType(Enum):
     CONFIG = auto()
 
     def is_enabled(self):
-        return {
-            SaveType.STEP: config.SAVE_EVOLUTION_STEP,
-            SaveType.GEN: config.SAVE_GENERATION,
-            SaveType.SELECTION: config.SAVE_SELECTION,
-            SaveType.POP: False,  # config.SAVE_POPULATION,
-            SaveType.GRID: False,  # config.SAVE_GRID,
-            SaveType.CONFIG: False,  # config.SAVE_CONFIG,
-        }[self]
+        match self:
+            case SaveType.STEP:
+                return Settings.settings.SAVE_EVOLUTION_STEP
+            case SaveType.GEN:
+                return Settings.settings.SAVE_GENERATION
+            case SaveType.SELECTION:
+                return Settings.settings.SAVE_SELECTION
+            case _:
+                False
 
 
-def writer(dest_filename, data_queue):
+def writer(dest_filename, data_queue, uid):
     logging.debug(f"Process writer started for: {dest_filename}")
     started = False
-    filepath = os.path.join(config.SAVE_FOLDER, dest_filename)
+
+    # path to saves for current simulation
+    sim_folder_path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}')
+    # create saves directory for current simulation
+    if not os.path.exists(sim_folder_path):
+        os.mkdir(sim_folder_path)
+
+    filepath = os.path.join(sim_folder_path, dest_filename)
+
     while True:
         line = data_queue.get()
         with open(filepath, "a") as file:
@@ -53,6 +63,7 @@ def writer(dest_filename, data_queue):
 
 def process_pop(gen, pop, selected, queue):
     logging.debug("Process pop started")
+
     if selected is not None:
         pop = np.array(pop)[selected]
     to_write = {
@@ -68,38 +79,50 @@ def process_pop(gen, pop, selected, queue):
                 "genome": specimen.genome,
                 "alive": specimen.alive
             }
+
     logging.debug(f"Process pop wrote: {to_write}")
     queue.put(json.dumps(to_write))
+
     return
 
 
-def pickle_pop(pop, filename):
+def pickle_pop(pop, filename, uid):
     logging.info("Process pop started")
-    filepath = os.path.join(config.SAVE_FOLDER, filename)
+
+    # path to saves for current simulation
+    sim_folder_path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}')
+    # create saves directory for current simulation
+    if not os.path.exists(sim_folder_path):
+        os.mkdir(sim_folder_path)
+
+    filepath = os.path.join(sim_folder_path, filename)
+
     with open(filepath, "wb") as file:
         for specimen in pop:
             if specimen:
                 pickle.dump(pop, file)
+
     logging.debug(f"Process pop wrote.")
+
     return
 
 
-def pickle_config(config_dict, filename):
+def write_json_config(config_dict, parameters, filename, uid):
     logging.info("Process config started")
-    filepath = os.path.join(config.SAVE_FOLDER, filename)
-    with open(filepath, "wb") as file:
-        pickle.dump(config_dict, file)
+
+    # path to saves for current simulation
+    sim_folder_path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}')
+    # create saves directory for current simulation
+    if not os.path.exists(sim_folder_path):
+        os.mkdir(sim_folder_path)
+
+    filepath = os.path.join(sim_folder_path, filename)
+
+    with open(filepath, "w") as file:
+        file.write(json.dumps({"config": config_dict, "parameters": parameters}))
+
     logging.debug(f"Process config wrote.")
-    return
 
-
-def pickle_grid(barriers: list, food_sources: dict, filename):
-    logging.info("Process grid started")
-    filepath = os.path.join(config.SAVE_FOLDER, filename)
-    with open(filepath, "wb") as file:
-        pickle.dump(barriers, file)
-        pickle.dump(food_sources, file)
-    logging.debug(f"Process grid wrote.")
     return
 
 
@@ -107,21 +130,25 @@ class SavingHelper:
     def __init__(self, simulation_uid):
         self.queues = {member: Queue() for member in SaveType if member.is_enabled()}
         self.writing_processes = dict()
-        self.writing_processes = {
-            member: Process(target=writer, args=(f"saved_{member.name}_{simulation_uid}.json", self.queues.get(member)))
-            for member in SaveType if member.is_enabled()}
+        self.writing_processes = {member: Process(target=writer, args=(
+            f"saved_{member.name}.json", self.queues.get(member), simulation_uid)) for member in
+                                  SaveType if member.is_enabled()}
         self.processors = []
         self.uid = simulation_uid
-        if not os.path.exists(config.SAVE_FOLDER):
-            os.mkdir(config.SAVE_FOLDER)
+
+        return
 
     def start_writers(self):
         logging.debug("Started writers")
+
         for _, p in self.writing_processes.items():
             p.start()
 
+        return
+
     def close_writers(self):
         logging.debug("Started closing saver")
+
         start = time.time()
         for p in self.processors:
             p.join()
@@ -129,7 +156,10 @@ class SavingHelper:
             q.put(None)
         for _, p in self.writing_processes.items():
             p.join()
+
         logging.debug(f"Closed writers, waited: {time.time() - start}s.")
+
+        return
 
     def save_step(self, gen, step, dead_count):
         line_to_write = {
@@ -139,30 +169,34 @@ class SavingHelper:
         }
         self.queues.get(SaveType.STEP).put(json.dumps(line_to_write))
 
+        return
+
     def save_selection(self, gen, selected_idx):
         p = Process(target=process_pop, args=(
-        gen, population.copy(), selected_idx, self.queues.get(SaveType.SELECTION)))
+            gen, population.copy(), selected_idx, self.queues.get(SaveType.SELECTION)))
         p.start()
         self.processors.append(p)
+
+        return
 
     def save_gen(self, gen):
         p = Process(target=process_pop, args=(gen, population.copy(), None, self.queues.get(SaveType.GEN)))
         p.start()
         self.processors.append(p)
 
+        return
+
     def save_pop(self):
-        p = Process(target=pickle_pop, args=(population.copy(), f"saved_{SaveType.POP.name}_{self.uid}.pickle"))
+        p = Process(target=pickle_pop, args=(population.copy(), f"saved_{SaveType.POP.name}.pickle", self.uid))
         p.start()
         self.processors.append(p)
+
+        return
 
     def save_config(self):
         config_dict = {key: value for key, value in vars(simulation_settings).items() if not key.startswith('__')}
-        p = Process(target=pickle_config, args=(config_dict.copy(), f"saved_{SaveType.CONFIG.name}_{self.uid}.pickle",))
+        p = Process(target=write_json_config, args=(config_dict.copy(), Settings.settings.__dict__.copy(), f"saved_{SaveType.CONFIG.name}.json", self.uid))
         p.start()
         self.processors.append(p)
 
-    def save_grid(self):
-        p = Process(target=pickle_grid, args=(
-        grid.barriers.copy(), grid.food_data.copy(), f"saved_{SaveType.GRID.name}_{self.uid}.pickle"))
-        p.start()
-        self.processors.append(p)
+        return
