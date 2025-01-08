@@ -12,6 +12,11 @@ class TestSpecimen(TestCase):
 
     @patch('src.population.Specimen.NeuralNetwork', autospec=True)
     def setUp(self, mock_neural_network):
+        mock_settings = Mock()
+        mock_settings.entry_max_energy_level = 10
+        mock_settings.max_energy_level_supremum = 12
+        settings_patch = patch('src.population.Specimen.Settings.settings', mock_settings)
+        settings_patch.start()
         self.index = 1
         self.location = Coord(0, 0)
         self.genome = ["a3f", "b2e", "c1d"]

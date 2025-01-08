@@ -11,7 +11,7 @@ class TestPheromones(unittest.TestCase):
         super().__init__(methodName)
 
     def setUp(self):
-        self.grid_mock = Grid(size_x=5, size_y=5)
+        self.grid_mock = Grid(5)
 
     def test_emit_pheromones(self):
         x, y = 2, 3

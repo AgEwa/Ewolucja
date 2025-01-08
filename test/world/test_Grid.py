@@ -8,7 +8,7 @@ from src.world.LocationTypes import Coord
 class TestGrid(TestCase):
 
     def setUp(self):
-        self.grid = Grid(2, 2)
+        self.grid = Grid(2)
         self.specimen_id = 37
         self.grid.data[1, 0] = self.specimen_id
 
