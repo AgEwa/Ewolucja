@@ -48,11 +48,11 @@ class Sensor:
 
     def _get_boundary_dist_x(self):
         """get boundary distance x"""
-        return min(self.specimen.location.x, grid.width - self.specimen.location.x)
+        return min(self.specimen.location.x, grid.size - self.specimen.location.x)
 
     def _get_boundary_dist_y(self):
         """get boundary distance y"""
-        return min(self.specimen.location.y, grid.height - self.specimen.location.y)
+        return min(self.specimen.location.y, grid.size - self.specimen.location.y)
 
     def _get_boundary_dist(self):
         """get distance to the closest boundary"""
@@ -143,6 +143,10 @@ class Sensor:
         """get distance to the closest barrier looking forward"""
         return self._look_forward("bar")
 
+    def _get_longprobe_food_fwd(self):
+        """get distance to the closest barrier looking forward"""
+        return self._look_forward("food")
+
     def _get_genetic_sim_fwd(self):
         """get genetic similarity to the closest member of population looking forward"""
         y = self.specimen.location.y
@@ -169,7 +173,11 @@ class Sensor:
         find first looking forward within long_probe_dist.
         return distance.
         """
-        check = grid.is_barrier_at_xy if goal == "bar" else grid.is_occupied_at_xy
+        match goal:
+            case "bar": check = grid.is_barrier_at_xy
+            case "pop": check = grid.is_occupied_at_xy
+            case "food": check = grid.is_food_at_xy
+
         y = self.specimen.location.y
         x = self.specimen.location.x
         i = 1
@@ -182,11 +190,6 @@ class Sensor:
         while (
                 grid.in_bounds_xy(x + mod.x * i, y + mod.y * i) and i < self.specimen.long_probe_dist and not check(x + mod.x * i, y + mod.y * i)):
             i += 1
-
-        if goal == "pop_gen" and grid.in_bounds_xy(x + mod.x * i, y + mod.y * i):
-            idx = grid.at_xy(x + mod.x * i, y + mod.y * i)
-            specimen = population[idx]
-            return self._genetic_similarity(specimen.genome)
 
         return i
 

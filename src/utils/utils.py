@@ -46,7 +46,7 @@ def squeeze(p_x: float) -> float:
 
 def response_curve(p_r: float) -> float:
     k = config.RESPONSIVENESS_CURVE_K_FACTOR
-    return (p_r - 2) ** (-2 * k) - 2 ** (-2 * k) * (1 - p_r)
+    return 2*(p_r - 2) ** (-2 * k) - 2 ** (-2 * k) * (1 - p_r)
 
 
 # for fun

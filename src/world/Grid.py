@@ -13,20 +13,22 @@ class Grid:
     EMPTY = 0
     BARRIER = -1
 
-    def __init__(self, size_x: int, size_y: int):
-        self.width = size_x
-        self.height = size_y
+    def __init__(self, size: int):
+        self.size = size
 
-        self.data = np.zeros((size_x, size_y), dtype=np.int16)
+        self.data = np.zeros((size, size), dtype=np.int16)
         self.food_data = {}
         self.barriers = []
 
-        self.pheromones = self.Pheromones(size_x, size_y)
-
+        self.pheromones = self.Pheromones(size)
         return
 
+    def reload_size(self):
+        self.size = Settings.settings.dim
+        self.data = np.zeros((self.size, self.size), dtype=np.int16)
+
     def reset(self):
-        self.data = np.zeros((self.width, self.height), dtype=np.int16)
+        self.data = np.zeros((self.size, self.size), dtype=np.int16)
         for key in self.food_data:
             self.food_data[key] = random.randint(config.FOOD_PER_SOURCE_MIN, config.FOOD_PER_SOURCE_MAX)
 
@@ -36,7 +38,7 @@ class Grid:
         return
 
     def clear(self):
-        self.data = np.zeros((self.width, self.height), dtype=np.int16)
+        self.data = np.zeros((self.size, self.size), dtype=np.int16)
         self.food_data = {}
         self.barriers = []
 
@@ -63,7 +65,7 @@ class Grid:
         self.food_data[idx] -= 1
 
     def in_bounds(self, loc: Coord):
-        return 0 <= loc.x < self.width and 0 <= loc.y < self.height
+        return 0 <= loc.x < self.size and 0 <= loc.y < self.size
 
     def at(self, loc: Coord):
         return self.data[loc.x, loc.y]
@@ -80,14 +82,14 @@ class Grid:
     def is_food_at(self, loc: Coord):
         return (loc.x, loc.y) in self.food_data and self.food_data.get((loc.x, loc.y)) > 0
 
-    def find_empty(self) -> Coord:
-        # all indexes where grid is zero
-        potentials = np.argwhere(self.data == Grid.EMPTY)
-
-        # select one such index randomly
-        result = potentials[np.random.choice(potentials.shape[0])]
-
-        return Coord(result[0].item(), result[1].item())
+    # def find_empty(self) -> Coord:
+    #     # all indexes where grid is zero
+    #     potentials = np.argwhere(self.data == Grid.EMPTY)
+    #
+    #     # select one such index randomly
+    #     result = potentials[np.random.choice(potentials.shape[0])]
+    #
+    #     return Coord(result[0].item(), result[1].item())
 
     # methods with x,y params to not force creation of Coord objects:
 
@@ -97,7 +99,7 @@ class Grid:
         self.food_data[idx] -= 1
 
     def in_bounds_xy(self, x, y):
-        return 0 <= x < self.width and 0 <= y < self.height
+        return 0 <= x < self.size and 0 <= y < self.size
 
     def at_xy(self, x, y):
         return self.data[x, y]
@@ -119,34 +121,25 @@ class Grid:
         Pheromone layer for the grid.
         """
 
-        def __init__(self, width: int, height: int):
-            self.width = width
-            self.height = height
-            self.grid = np.zeros((width, height), dtype=np.float64)
+        def __init__(self, size: int):
+            self.size = size
+            self.grid = np.zeros((size, size), dtype=np.float64)
 
         def emit(self, x: int, y: int, direction: Direction):
-            if Settings.settings.disable_pheromones:
-                return
-
             strength = config.PHEROMONE_STRENGTH
-            # print(
-            # f"[DEBUG] Emit pheromones called with x={x}, y={y}, direction={direction.compass}, strength={strength}")
 
             # This addresses the problem of specimen not moving?? (no pheromones emitted then)
             if direction.compass == Compass.CENTER:
-                # print("osobnik nie poruszył się, nie nastapila emisja")
                 return
 
             else:
                 backward_direction = direction.rotate_180_deg()
                 backward_coord = Conversions.direction_as_normalized_coord(backward_direction)
 
-                # print(f"[DEBUG] Backward direction: {backward_direction.compass}, Backward coord: {backward_coord}")
-
                 for dx in range(-3, 4):
                     for dy in range(-3, 4):
                         nx, ny = x + dx, y + dy
-                        if 0 < nx < self.width - 1 and 0 < ny < self.height - 1:  # Pheromones not emitted at and out of the bounds
+                        if 0 < nx < self.size - 1 and 0 < ny < self.size - 1:  # Pheromones not emitted at and out of the bounds
                             distance = math.sqrt(dx ** 2 + dy ** 2)
                             if distance > 3:
                                 continue
@@ -161,9 +154,6 @@ class Grid:
                             self.grid[nx, ny] += intensity
 
         def read(self, x: int, y: int, direction: Direction, axis: str) -> float:
-            if Settings.settings.disable_pheromones:
-                return 0
-
             """
             Reads pheromone values in a specific axis: forward, left, or right.
             Args:
@@ -190,16 +180,13 @@ class Grid:
             # Read pheromones in the specified direction
             for i in range(1, 4):
                 nx, ny = x + i * modifier.x, y + i * modifier.y
-                if 0 < nx < self.width - 1 and 0 < ny < self.height - 1:
+                if 0 < nx < self.size - 1 and 0 < ny < self.size - 1:
                     pheromone_sum += self.grid[nx, ny]
                     count += 1
 
             return pheromone_sum / max(1, count)
 
         def spread(self):
-            if Settings.settings.disable_pheromones:
-                return
-
             """
             Pheromone spread and decay using convolution.
             """
@@ -219,4 +206,3 @@ class Grid:
             self.grid[:, 0] = 0
             self.grid[:, -1] = 0
 
-        # def get_at(self, x: int, y: int) -> float:  #     """  #     Retrieves the pheromone value at a SPECIFIC LOCATION.  #     Args:  #         x (int): X-coordinate.  #         y (int): Y-coordinate.  #     Returns:  #         float: Pheromone value.  #     """  #     return self.grid[x, y] if 0 <= x < self.width and 0 <= y < self.height else 0

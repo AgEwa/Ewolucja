@@ -3,14 +3,13 @@ from PyQt6.QtWidgets import QMainWindow, QFrame, QHBoxLayout, QVBoxLayout, QDial
     QFileDialog
 
 import config
-from src.gui.Map import Map, MarkType
-from src.saves.MapSave import MapSave
-from src.saves.Settings import Settings
+from src.gui.Plane import Plane, MarkType
+from src.saves.PlaneSave import PlaneSave
 
 
 # new plane creator
 class NewPlaneCreator(QMainWindow):
-    def __init__(self, p_map_save: MapSave = None):
+    def __init__(self, p_map_save: PlaneSave = None):
         """ constructor, takes optional parameter p_map_save which places default spaces on map """
 
         # use derived constructor
@@ -19,7 +18,7 @@ class NewPlaneCreator(QMainWindow):
         # root widget in window, it is parent of everything else visible
         self._container = QFrame()
         # interactive map that you can click to edit it, init with p_map_save
-        self._map = Map(p_map_save)
+        self._map = Plane(p_map_save)
         # radio button to select what type of object to place on plane (barrier)
         self._barrier = QRadioButton('Barrier')
         # connect method that should be triggered

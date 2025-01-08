@@ -138,9 +138,6 @@ def simulation(uid) -> None:
     if Settings.settings.SAVE_CONFIG:
         save_helper.save_config()
 
-    if Settings.settings.SAVE_GRID:
-        save_helper.save_grid()
-
     wait_start = time.time()
     for p in gif_processes:
         p.join()

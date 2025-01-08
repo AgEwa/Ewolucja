@@ -38,8 +38,7 @@ class Specimen:
         self.birth_location = p_birth_location
         self.location = self.birth_location
         self.age = 0
-        self.responsiveness = 0.5
-        self.responsiveness_adj = response_curve(self.responsiveness)
+        self.responsiveness = 1
         self.oscillator = None
         self.long_probe_dist = config.LONG_PROBE_DISTANCE
         # Direction object with compass field
@@ -52,6 +51,15 @@ class Specimen:
         self.brain = NeuralNetwork(p_genome, self)
 
         return
+
+    def reset(self, loc: Coord):
+        self.alive = True
+        self.age = 0
+        self.birth_location = loc
+        self.location = self.birth_location
+        self.energy = self.max_energy
+        assert isinstance(self.brain, NeuralNetwork)
+        return self
 
     def can_move(self):
         return self.energy >= config.ENERGY_PER_ONE_UNIT_OF_MOVE
@@ -107,8 +115,7 @@ class Specimen:
                 method(value)
 
     def _set_responsiveness(self, value):
-        self.responsiveness = squeeze(value)
-        self.responsiveness_adj = response_curve(self.responsiveness)  # Myślę że można przerobić żeby symulować starzenie się (mniejsza responsywność z czasem)
+        self.responsiveness = response_curve(value)
 
     def _set_oscillator_period(self, value):
         if not self.oscillator:
@@ -124,19 +131,16 @@ class Specimen:
         self.long_probe_dist = int(level)
 
     def _emit_pheromone(self, value):
-        if not Settings.settings.disable_pheromones:
-            emit_threshold = 0.1
-            level = squeeze(value)
-            level *= self.responsiveness_adj
+        emit_threshold = 0.1
+        level = squeeze(value * self.responsiveness)
 
-            if level > emit_threshold and probability(level) or config.FORCE_EMISSION_TEST:
-                grid.pheromones.emit(self.location.x, self.location.y, self.last_movement_direction)
+        if level > emit_threshold and probability(level) or config.FORCE_EMISSION_TEST:
+            grid.pheromones.emit(self.location.x, self.location.y, self.last_movement_direction)
 
     def _kill(self, value):
         kill_threshold = 0.5
 
-        level = squeeze(value)
-        level *= self.responsiveness_adj
+        level = squeeze(value * self.responsiveness)
 
         if level > kill_threshold and probability(level):
             for x in range(self.location.x - 1, self.location.x + 2):

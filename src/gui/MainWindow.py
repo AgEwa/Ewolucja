@@ -1,5 +1,4 @@
 import os
-import pickle
 import uuid
 from enum import Enum, auto
 from multiprocessing import Process
@@ -10,22 +9,22 @@ from PyQt6.QtWidgets import QMainWindow, QFrame, QFileDialog, QHBoxLayout, QVBox
 
 import config
 from src.evolution.Initialization import initialize_simulation
-from src.gui.InfoWindow import InfoWindow
+from src.gui.HelpWindow import HelpWindow
 from src.gui.NewPlaneCreator import NewPlaneCreator
 from src.gui.ParametersEditor import ParametersEditor
-from src.saves.MapSave import MapSave
+from src.saves.PlaneSave import PlaneSave
 from src.saves.Settings import Settings
-from src.utils.Plot import plot_world
+from src.utils.Plot import plot_plane
 
 
 # this enum class describes available actions menus
 class MenuBarOptions(Enum):
     LOAD_POPULATION = auto()
     EDIT_PARAMETERS = auto()
-    INFO = auto()
+    HELP = auto()
     CREATE_NEW_PLANE = auto()
     EDIT_PLANE = auto()
-    OPEN_PLANE = auto()
+    LOAD_PLANE = auto()
     EXIT = auto()
 
 
@@ -40,11 +39,12 @@ class MainWindow(QMainWindow):
         # every opened window with new plane creator is stored here
         # if not stored, it is immediately closed automatically and if stored in a single variable
         # it overwrites if you try to open the next one, so list it is
+        self._population_file = None
         self._opened_new_plane_creators = []
         # field to store parameters editor window object ref
         self._parameters_editor = None
-        # field to store info window object ref
-        self._info_window = None
+        # field to store help window object ref
+        self._help_window = None
         # field to store which generation' animation is being played
         self._cur_generation_animation = 0
         # indicator of progress
@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._container)
 
         self.simulation_process: Process = None
-        self._map_save: MapSave = None
+        self._plane_save: PlaneSave = None
 
         return
 
@@ -119,15 +119,15 @@ class MainWindow(QMainWindow):
         # connect method that should be triggered
         self._actions[MenuBarOptions.EDIT_PLANE].triggered.connect(self.edit_plane_action_triggered)
 
-        # create action that corresponds to opening plane
-        self._actions[MenuBarOptions.OPEN_PLANE] = QAction('Open plane', self)
+        # create action that corresponds to loading plane
+        self._actions[MenuBarOptions.LOAD_PLANE] = QAction('Load plane', self)
         # connect method that should be triggered
-        self._actions[MenuBarOptions.OPEN_PLANE].triggered.connect(self.open_plane_action_triggered)
+        self._actions[MenuBarOptions.LOAD_PLANE].triggered.connect(self.load_plane_action_triggered)
 
         # create action that corresponds to accessing information and instructions on how to use application
-        self._actions[MenuBarOptions.INFO] = QAction('Info', self)
+        self._actions[MenuBarOptions.HELP] = QAction('Help', self)
         # connect method that should be triggered
-        self._actions[MenuBarOptions.INFO].triggered.connect(self.info_action_triggered)
+        self._actions[MenuBarOptions.HELP].triggered.connect(self.help_action_triggered)
 
         return
 
@@ -154,11 +154,11 @@ class MainWindow(QMainWindow):
         plane_menu.addAction(self._actions[MenuBarOptions.CREATE_NEW_PLANE])
         # add edit new plane action
         plane_menu.addAction(self._actions[MenuBarOptions.EDIT_PLANE])
-        # add open plane action
-        plane_menu.addAction(self._actions[MenuBarOptions.OPEN_PLANE])
+        # add load plane action
+        plane_menu.addAction(self._actions[MenuBarOptions.LOAD_PLANE])
 
-        # create menu action info
-        menu.addAction(self._actions[MenuBarOptions.INFO])
+        # create menu action help
+        menu.addAction(self._actions[MenuBarOptions.HELP])
 
         return
 
@@ -229,32 +229,15 @@ class MainWindow(QMainWindow):
 
         return
 
-    @staticmethod
-    def get_population_save():
-        try:
-            # get path to saved population user wants to open.
-            # take first element, since it is the path
-            # ToDo: todo
-            # directory=config.SAVES_FOLDER_PATH
-            filepath = QFileDialog.getOpenFileName(directory=config.SIMULATION_SAVES_FOLDER_PATH)[0]
-
-            # if file selected
-            if filepath != '':
-                with open(filepath, "rb") as file:
-                    return pickle.load(file)
-
-        except Exception as e:
-            print(e)
-
-        return
-
     def load_population_action_triggered(self):
         """ happens when load population action is triggered """
-
-        # read selected population save file
-        population = MainWindow.get_population_save()
-        # example visualisation
-        print(population)
+        try:
+            # read selected population save file
+            self._population_file = QFileDialog.getOpenFileName(directory=config.SIMULATION_SAVES_FOLDER_PATH)[0]
+            # example visualisation
+            print(self._population_file)
+        except Exception as e:
+            print(e)
 
         return
 
@@ -286,7 +269,7 @@ class MainWindow(QMainWindow):
         return
 
     @staticmethod
-    def get_map_save():
+    def get_plane_save():
         try:
             # get path to saved plane user wants to open.
             # open dialog box in default spot (saves folder), take first element, since it is the path
@@ -297,7 +280,7 @@ class MainWindow(QMainWindow):
                 # open file for reading
                 with open(filepath, 'r') as f:
                     # read contents and create MapSave object out of it
-                    return MapSave.from_json(f.read())
+                    return PlaneSave.from_json(f.read())
 
         except Exception as e:
             print(e)
@@ -308,38 +291,37 @@ class MainWindow(QMainWindow):
         """ happens when edit plane action is triggered """
 
         # read selected map save file
-        map_save = MainWindow.get_map_save()
+        plane_save = MainWindow.get_plane_save()
 
-        if map_save is not None:
+        if plane_save is not None:
             # create new NewPlaneCreator object and store it, so it isn't closed in an instant
-            # pass map_save object to load its data
-            self._opened_new_plane_creators.append(NewPlaneCreator(map_save))
+            # pass plane_save object to load its data
+            self._opened_new_plane_creators.append(NewPlaneCreator(plane_save))
             # show the lastly appended window
             self._opened_new_plane_creators[-1].show()
 
         pass
 
-    def open_plane_action_triggered(self) -> None:
-        """ happens when open plane action is triggered """
+    def load_plane_action_triggered(self) -> None:
+        """ happens when load plane action is triggered """
 
         # read selected map save file
-        self._map_save = MainWindow.get_map_save()
+        self._plane_save = MainWindow.get_plane_save()
 
         # example visualisation
-        print(self._map_save)
+        print(self._plane_save)
 
-        if self._map_save.dim != Settings.settings.dim:
+        if self._plane_save.dim != Settings.settings.dim:
             # ToDo: show some popup
-            self._map_save.dim = None
+            self._plane_save.dim = None
 
         path = os.path.join(config.PLANE_SAVES_FOLDER_PATH, 'currently_loaded_plane')
 
         try:
-            if self._map_save.dim is not None:
-                # ToDo: There is problem. Apparently 'plot_world' expects np.array objects, not just list.
-                plot_world(self._map_save.get_barrier_positions(), self._map_save.get_food_positions(), [None], path)
+            if self._plane_save.dim is not None:
+                plot_plane(self._plane_save.get_barrier_positions(), self._plane_save.get_food_positions(), path)
             else:
-                plot_world([], [], [None], path)
+                plot_plane([], [], path)
         except Exception as e:
             print(e, 1)
 
@@ -351,22 +333,23 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(e, 2)
 
-
         return
 
-    def info_action_triggered(self):
-        """ happens when info action is triggered """
+    def help_action_triggered(self):
+        """ happens when help action is triggered """
 
-        self._info_window = InfoWindow()
-        self._info_window.show()
+        self._help_window = HelpWindow()
+        self._help_window.show()
 
         return
 
     def update_(self):
-        self._progress_indicator.setText(f'Generation: {self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
+        self._progress_indicator.setText(
+            f'Generation: {self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
 
         # path to desired generation animation of current simulation
-        path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self._uid}', 'animation', f'generation_{self._cur_generation_animation}.gif')
+        path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self._uid}', 'animation',
+                            f'generation_{self._cur_generation_animation}.gif')
 
         if os.path.exists(path):
             animation = QMovie(path)
@@ -413,7 +396,8 @@ class MainWindow(QMainWindow):
 
         self._uid = uuid.uuid4()
 
-        self.simulation_process = Process(target=initialize_simulation, args=(self._map_save, self._uid))
+        self.simulation_process = Process(target=initialize_simulation,
+                                          args=(self._plane_save, self._uid, self._population_file))
         self.simulation_process.start()
 
         return
@@ -421,8 +405,8 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         """ executes when close event is triggered """
 
-        if self._info_window is not None:
-            self._info_window.close()
+        if self._help_window is not None:
+            self._help_window.close()
 
         if self._parameters_editor is not None:
             self._parameters_editor.close()

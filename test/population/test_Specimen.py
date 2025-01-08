@@ -50,7 +50,7 @@ class TestSpecimen(TestCase):
             ActionType.SET_OSCILLATOR_PERIOD: value,
             ActionType.SET_LONGPROBE_DIST: value
         }
-        expected_responsiveness = squeeze(value)
+        expected_responsiveness = response_curve(value)
         expected_period = squeeze(value)
         expected_dist = 1 + squeeze(value) * 32
         mock_oscillator = Mock()  # Create a mock for the oscillator
@@ -60,7 +60,6 @@ class TestSpecimen(TestCase):
         self.specimen.act(p_actions)
         # then
         self.assertEqual(expected_responsiveness, self.specimen.responsiveness)
-        self.assertEqual(response_curve(expected_responsiveness), self.specimen.responsiveness_adj)
         mock_oscillator.set_frequency.assert_called_once_with(1 / expected_period)
         self.assertEqual(int(expected_dist), self.specimen.long_probe_dist)
 

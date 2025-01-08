@@ -31,8 +31,8 @@ class TestSensor(TestCase):
 
         # mock the Grid
         self.grid_mock = grid
-        self.grid_mock.width = 5
-        self.grid_mock.height = 5
+        self.grid_mock.size = 5
+        self.grid_mock.size = 5
         self.grid_mock.in_bounds_xy = Mock(side_effect=lambda x, y: 0 <= x < 5 and 0 <= y < 5)
         self.grid_mock.is_occupied_at_xy = Mock(return_value=False)
         self.grid_mock.is_food_at_xy = Mock(return_value=False)

@@ -7,7 +7,7 @@ from unittest import TestCase
 import config
 from config_src import simulation_settings
 from src.population.Specimen import Specimen
-from src.utils.Save import pickle_pop, pickle_config, pickle_grid, process_pop, writer
+from src.utils.Save import pickle_pop, write_json_config, process_pop, writer
 from src.utils.utils import initialize_genome
 from src.world.LocationTypes import Coord
 
@@ -62,27 +62,12 @@ class TestPickleSaving(TestCase):
         test_file = "test_config.pickle"
         original_config_dict = {key: value for key, value in vars(simulation_settings).items() if not key.startswith('__')}
         # when
-        pickle_config(original_config_dict.copy(),test_file)
+        write_json_config(original_config_dict.copy(), test_file)
         # then
         self.test_filepath = os.path.join(config.SAVE_FOLDER, test_file)
         with open(self.test_filepath, "rb") as file:
             data = pickle.load(file)
         self.assertDictEqual(original_config_dict, data)
-
-    def test_pickle_grid(self):
-        # given
-        test_file = "test_grid.pickle"
-        barriers = [(0, 0), (1, 1), (2, 2)]
-        food_data = {(0, 0): 2, (1, 1): 3, (2, 2): 0}
-        # when
-        pickle_grid(barriers, food_data, test_file)
-        # then
-        self.test_filepath = os.path.join(config.SAVE_FOLDER, test_file)
-        with open(self.test_filepath, "rb") as file:
-            data_1 = pickle.load(file)
-            data_2 = pickle.load(file)
-        self.assertListEqual(barriers, data_1)
-        self.assertDictEqual(food_data, data_2)
 
 
 class TestWriterSaving(TestCase):

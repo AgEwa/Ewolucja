@@ -3,7 +3,7 @@ from multiprocessing import set_start_method, freeze_support
 from PyQt6.QtWidgets import QApplication
 
 from src.gui.MainWindow import MainWindow
-from src.saves.Saves import Saves
+from src.saves.SavesStarter import SavesStarter
 from src.saves.Settings import Settings
 
 
@@ -11,7 +11,7 @@ class Main:
     @staticmethod
     def main():
         # initialise saves directory
-        Saves.init()
+        SavesStarter.init()
 
         # read settings and store them in class, so they can be accessed everywhere without circular import error
         Settings.read()

@@ -19,6 +19,7 @@ class Settings:
     genome_length: int = config.GENOME_LENGTH
     max_number_of_inner_neurons: int = config.MAX_NUMBER_OF_INNER_NEURONS
     disable_pheromones: bool = config.DISABLE_PHEROMONES
+    enable_kill: bool = config.KILL_ENABLED
 
     entry_max_energy_level: int = config.ENTRY_MAX_ENERGY_LEVEL
     max_energy_level_supremum: int = config.MAX_ENERGY_LEVEL_SUPREMUM
@@ -30,7 +31,6 @@ class Settings:
 
     SAVE_SELECTION: bool = config.SAVE_SELECTION
     SAVE_POPULATION: bool = config.SAVE_POPULATION
-    SAVE_GRID: bool = config.SAVE_GRID
 
     SAVE_CONFIG: bool = config.SAVE_CONFIG
 

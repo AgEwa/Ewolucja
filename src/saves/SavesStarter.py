@@ -4,7 +4,7 @@ import config
 from src.saves.Settings import Settings
 
 
-class Saves:
+class SavesStarter:
     @staticmethod
     def init() -> None:
         """ Initialises saves directory hierarchy """

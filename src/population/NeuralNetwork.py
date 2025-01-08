@@ -7,11 +7,11 @@ from src.saves.Settings import Settings
 from src.utils.Oscilator import Oscillator
 from src.utils.utils import bin_to_signed_int
 
-sensors_num = len(list(SensorType))
-action_num = len(list(ActionType))
-
 
 def decode_connection(hex_gene: str) -> tuple[int, NeuronType, int, NeuronType, float]:
+    sensors_num = len(list(SensorType)) if not Settings.settings.disable_pheromones else len(list(SensorType)) - 3
+    action_num = len(list(ActionType)) if not Settings.settings.disable_pheromones else len(list(ActionType)) - 1
+
     bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)
 
     source_type = NeuronType.SENSOR if int(bin_gene[0]) == 0 else NeuronType.INNER
@@ -67,7 +67,10 @@ class NeuralNetwork:
                     sensor_action.get(target_id).append((source_id, weight))
 
         self.layers = DirectConnections(sensor_action).add_activation_func(tanh)
-        self.layers.next(Layer(sensor_inner)).next(LateralConnections(inner_inner).add_activation_func(tanh)).next(Layer(inner_action))
+        self.layers.next(
+            Layer(sensor_inner)).next(
+            LateralConnections(inner_inner).add_activation_func(tanh)).next(
+            Layer(inner_action))
         used_sensors = self.layers.optimize(sensors_ids)
         # visualize_neural_network(self.layers.get_network())
         self.sensors = Sensor(used_sensors, self.specimen)

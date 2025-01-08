@@ -5,13 +5,13 @@ from PyQt6.QtWidgets import QFrame
 import config
 from src.gui.MarkType import MarkType
 from src.gui.Square import Square
-from src.saves.MapSave import MapSave
+from src.saves.PlaneSave import PlaneSave
 from src.saves.Settings import Settings
 
 
 # interactive map
-class Map(QFrame):
-    def __init__(self, p_map_save: MapSave = None):
+class Plane(QFrame):
+    def __init__(self, p_map_save: PlaneSave = None):
         """ constructor, takes optional parameter p_map_save which places default spaces on map """
 
         # use derived constructor
@@ -91,7 +91,7 @@ class Map(QFrame):
 
         return
 
-    def get_marked_data(self) -> MapSave:
+    def get_marked_data(self) -> PlaneSave:
         """ returns positions of places of barriers and food sources """
 
         # stores barriers positions
@@ -113,6 +113,6 @@ class Map(QFrame):
                         # add to food positions list
                         food_positions.append((x, y))
 
-        res = MapSave(self._dim, barrier_positions, food_positions)
+        res = PlaneSave(self._dim, barrier_positions, food_positions)
 
         return res

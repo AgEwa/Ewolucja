@@ -10,7 +10,7 @@ import numpy as np
 
 import config
 from config_src import simulation_settings
-from src.external import population, grid
+from src.external import population
 from src.saves.Settings import Settings
 
 
@@ -23,14 +23,15 @@ class SaveType(Enum):
     CONFIG = auto()
 
     def is_enabled(self):
-        return {
-            SaveType.STEP: Settings.settings.SAVE_EVOLUTION_STEP,
-            SaveType.GEN: Settings.settings.SAVE_GENERATION,
-            SaveType.SELECTION: Settings.settings.SAVE_SELECTION,
-            SaveType.POP: Settings.settings.SAVE_POPULATION,
-            SaveType.GRID: Settings.settings.SAVE_GRID,
-            SaveType.CONFIG: Settings.settings.SAVE_CONFIG,
-        }[self]
+        match self:
+            case SaveType.STEP:
+                return Settings.settings.SAVE_EVOLUTION_STEP
+            case SaveType.GEN:
+                return Settings.settings.SAVE_GENERATION
+            case SaveType.SELECTION:
+                return Settings.settings.SAVE_SELECTION
+            case _:
+                False
 
 
 def writer(dest_filename, data_queue, uid):
@@ -106,7 +107,7 @@ def pickle_pop(pop, filename, uid):
     return
 
 
-def pickle_config(config_dict, filename, uid):
+def write_json_config(config_dict, parameters, filename, uid):
     logging.info("Process config started")
 
     # path to saves for current simulation
@@ -117,30 +118,10 @@ def pickle_config(config_dict, filename, uid):
 
     filepath = os.path.join(sim_folder_path, filename)
 
-    with open(filepath, "wb") as file:
-        pickle.dump(config_dict, file)
+    with open(filepath, "w") as file:
+        file.write(json.dumps({"config": config_dict, "parameters": parameters}))
 
     logging.debug(f"Process config wrote.")
-
-    return
-
-
-def pickle_grid(barriers: list, food_sources: dict, filename, uid):
-    logging.info("Process grid started")
-
-    # path to saves for current simulation
-    sim_folder_path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}')
-    # create saves directory for current simulation
-    if not os.path.exists(sim_folder_path):
-        os.mkdir(sim_folder_path)
-
-    filepath = os.path.join(sim_folder_path, filename)
-
-    with open(filepath, "wb") as file:
-        pickle.dump(barriers, file)
-        pickle.dump(food_sources, file)
-
-    logging.debug(f"Process grid wrote.")
 
     return
 
@@ -214,15 +195,7 @@ class SavingHelper:
 
     def save_config(self):
         config_dict = {key: value for key, value in vars(simulation_settings).items() if not key.startswith('__')}
-        p = Process(target=pickle_config, args=(config_dict.copy(), f"saved_{SaveType.CONFIG.name}.pickle", self.uid))
-        p.start()
-        self.processors.append(p)
-
-        return
-
-    def save_grid(self):
-        p = Process(target=pickle_grid, args=(
-            grid.barriers.copy(), grid.food_data.copy(), f"saved_{SaveType.GRID.name}.pickle", self.uid))
+        p = Process(target=write_json_config, args=(config_dict.copy(), Settings.settings.__dict__.copy(), f"saved_{SaveType.CONFIG.name}.json", self.uid))
         p.start()
         self.processors.append(p)
 

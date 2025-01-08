@@ -14,7 +14,7 @@ def correct_positions(positions_list: list[list]):
 
 @dataclass
 # describes map save
-class MapSave:
+class PlaneSave:
     dim: int = config.DIM
     barrier_positions: list = field(default_factory=list)
     food_positions: list = field(default_factory=list)
@@ -25,12 +25,12 @@ class MapSave:
         return json.dumps(self.__dict__)
 
     @staticmethod
-    def from_json(p_json: str) -> 'MapSave':
+    def from_json(p_json: str) -> 'PlaneSave':
         """ based on json representation creates MapSave object """
 
         assert isinstance(p_json, str)
 
-        return MapSave(**(json.loads(p_json)))
+        return PlaneSave(**(json.loads(p_json)))
 
     def get_food_positions(self):
         return correct_positions(self.food_positions)

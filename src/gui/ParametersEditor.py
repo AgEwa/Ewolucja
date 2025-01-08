@@ -107,8 +107,8 @@ class ParametersEditor(QMainWindow):
         self.save_population.setChecked(Settings.settings.SAVE_POPULATION)
 
         # input responsible for disabling and enabling saving of animation
-        self.save_grid = QCheckBox()
-        self.save_grid.setChecked(Settings.settings.SAVE_GRID)
+        self.enable_kill = QCheckBox()
+        self.enable_kill.setChecked(Settings.settings.enable_kill)
 
         # input responsible for disabling and enabling saving of animation
         self.save_config = QCheckBox()
@@ -194,12 +194,12 @@ class ParametersEditor(QMainWindow):
         parameters_layout.addWidget(QLabel('Save population:'), 5, 3)
         parameters_layout.addWidget(self.save_population, 5, 4)
 
-        parameters_layout.addWidget(QLabel('Save grid:'), 5, 6)
-        parameters_layout.addWidget(self.save_grid, 5, 7)
+        parameters_layout.addWidget(QLabel('Save config:'), 5, 6)
+        parameters_layout.addWidget(self.save_config, 5, 7)
 
         # row 6
-        parameters_layout.addWidget(QLabel('Save config:'), 6, 0)
-        parameters_layout.addWidget(self.save_config, 6, 1)
+        parameters_layout.addWidget(QLabel('Enable kill action:'), 6, 0)
+        parameters_layout.addWidget(self.enable_kill, 6, 1)
 
         self._parameters.setLayout(parameters_layout)
 
@@ -246,7 +246,7 @@ class ParametersEditor(QMainWindow):
         Settings.settings.SAVE_GENERATION = self.save_generation.isChecked()
         Settings.settings.SAVE_SELECTION = self.save_selection.isChecked()
         Settings.settings.SAVE_POPULATION = self.save_population.isChecked()
-        Settings.settings.SAVE_GRID = self.save_grid.isChecked()
+        Settings.settings.enable_kill = self.enable_kill.isChecked()
         Settings.settings.SAVE_CONFIG = self.save_config.isChecked()
 
         Settings.write()
