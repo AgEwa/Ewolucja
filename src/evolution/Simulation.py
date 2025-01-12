@@ -5,12 +5,14 @@ from src.evolution.Operators import *
 from src.external import move_queue, kill_set, grid
 from src.population.Specimen import Specimen
 from src.utils.Plot import *
-from src.utils.Save import SavingHelper
+from src.utils.Save import SavingHelper, save_stats
 from src.utils.utils import drain_move_queue, drain_kill_set, probability
 from src.world.Grid import Grid
 from src.world.LocationTypes import Coord
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(process)d - %(levelname)s: %(message)s (%(filename)s:%(lineno)d)', datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(process)d - %(levelname)s: %(message)s (%(filename)s:%(lineno)d)',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def new_generation_initialize(p_genomes: list) -> None:
@@ -19,6 +21,7 @@ def new_generation_initialize(p_genomes: list) -> None:
     grid.reset()
     population.clear()
     population.append(None)
+    killers_count = 0
 
     # look for empty spaces
     initials = np.argwhere(grid.data == Grid.EMPTY)
@@ -29,13 +32,14 @@ def new_generation_initialize(p_genomes: list) -> None:
         # create specimen and add it to population. Save its index (in population list), location (in grid) and
         # randomly generated genome
         population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), p_genomes[i][1:]))
+        killers_count += 1 if population[-1].is_killer else 0
         # place index (reference to population list) on grid
         grid.data[selected[i][0], selected[i][1]] = i + 1
         # set max energy
         population[i + 1].max_energy = p_genomes[i][0]
         population[i + 1].energy = population[i + 1].max_energy
 
-    return
+    return killers_count
 
 
 def simulation(uid) -> None:
@@ -66,6 +70,10 @@ def simulation(uid) -> None:
     if Settings.settings.SAVE:
         save_helper = SavingHelper(uid)
         save_helper.start_writers()
+
+    killers_count = 0
+    for specimen in population[1:]:
+        killers_count += 1 if specimen.is_killer else 0
 
     # simulation loop
     for generation in range(Settings.settings.number_of_generations):
@@ -109,6 +117,11 @@ def simulation(uid) -> None:
         probabilities, selected_idx = evaluate_and_select()
         genomes_for_new_population = reproduce(probabilities, selected_idx)
 
+        # save survivred, selected and with kill neuron
+        survived = Settings.settings.population_size - count_dead
+        selected = len(selected_idx)
+        save_stats(uid, generation, survived, selected, killers_count)
+
         if Settings.settings.SAVE_SELECTION:
             save_helper.save_selection(generation, selected_idx)
 
@@ -129,7 +142,7 @@ def simulation(uid) -> None:
 
         filenames.clear()
 
-        new_generation_initialize(genomes_for_new_population)
+        killers_count = new_generation_initialize(genomes_for_new_population)
         logging.info(f"Gen {generation} took {time.time() - gen_start}s.")
 
     if Settings.settings.SAVE_POPULATION:

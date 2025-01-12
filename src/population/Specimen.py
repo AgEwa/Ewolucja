@@ -49,6 +49,7 @@ class Specimen:
         self.energy = self.max_energy  # or always start with ENTRY_MAX_ENERGY_LEVEL or other set value
         self.genome = p_genome
         self.brain = NeuralNetwork(p_genome, self)
+        self.is_killer = self.brain.is_killer
 
         return
 

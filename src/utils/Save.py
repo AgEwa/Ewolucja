@@ -9,7 +9,7 @@ from multiprocessing import Process, Queue
 import numpy as np
 
 import config
-from config_src import simulation_settings
+from src.config_src import simulation_settings
 from src.external import population
 from src.saves.Settings import Settings
 
@@ -126,6 +126,25 @@ def write_json_config(config_dict, parameters, filename, uid):
     return
 
 
+def save_stats(uid, gen: int, survived: int, selected: int, killers_count: int):
+    line_to_write = {
+        "survived": survived,
+        "selected": selected,
+        "killers count": killers_count
+    }
+    stats_folder_path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}', 'stats')
+    # create saves directory for current simulation
+    if not os.path.exists(stats_folder_path):
+        os.mkdir(stats_folder_path)
+
+    filepath = os.path.join(stats_folder_path, f"gen_{gen}.json")
+
+    with open(filepath, "w") as file:
+        file.write(json.dumps(line_to_write))
+
+    return
+
+
 class SavingHelper:
     def __init__(self, simulation_uid):
         self.queues = {member: Queue() for member in SaveType if member.is_enabled()}
@@ -195,7 +214,8 @@ class SavingHelper:
 
     def save_config(self):
         config_dict = {key: value for key, value in vars(simulation_settings).items() if not key.startswith('__')}
-        p = Process(target=write_json_config, args=(config_dict.copy(), Settings.settings.__dict__.copy(), f"saved_{SaveType.CONFIG.name}.json", self.uid))
+        p = Process(target=write_json_config, args=(
+            config_dict.copy(), Settings.settings.__dict__.copy(), f"saved_{SaveType.CONFIG.name}.json", self.uid))
         p.start()
         self.processors.append(p)
 

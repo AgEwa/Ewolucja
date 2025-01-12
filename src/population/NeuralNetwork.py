@@ -32,6 +32,7 @@ class NeuralNetwork:
         self.sensors = None
         self.layers = None
         self.specimen = specimen
+        self.is_killer = False
         self.__genome_to_neural_network(genome)
 
         return
@@ -60,11 +61,15 @@ class NeuralNetwork:
                     if target_id not in inner_action:
                         inner_action[target_id] = []
                     inner_action.get(target_id).append((source_id, weight))
+                    if ActionType(target_id) == ActionType.KILL:
+                        self.is_killer = True
                 case (NeuronType.SENSOR, NeuronType.ACTION):
                     sensors_ids.add(source_id)
                     if target_id not in sensor_action:
                         sensor_action[target_id] = []
                     sensor_action.get(target_id).append((source_id, weight))
+                    if ActionType(target_id) == ActionType.KILL:
+                        self.is_killer = True
 
         self.layers = DirectConnections(sensor_action).add_activation_func(tanh)
         self.layers.next(

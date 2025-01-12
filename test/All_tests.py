@@ -1,7 +1,7 @@
 import unittest
 
 from evolution.test_Operators import TestOperators
-from utils.test_Save import TestPickleSaving, TestWriterSaving
+from utils.test_Save import TestSingleSaving, TestWriterSaving
 from population.test_Layer import *
 from population.test_NeuralNetwork import TestNeuralNetwork, TestDecodeConnection
 from population.test_Sensor import TestSensor
@@ -28,7 +28,7 @@ def run_all_tests():
     suite.addTest(loader.loadTestsFromTestCase(TestNeuralNetwork))
     suite.addTest(loader.loadTestsFromTestCase(TestOperators))
     suite.addTest(loader.loadTestsFromTestCase(TestPheromones))
-    suite.addTest(loader.loadTestsFromTestCase(TestPickleSaving))
+    suite.addTest(loader.loadTestsFromTestCase(TestSingleSaving))
     suite.addTest(loader.loadTestsFromTestCase(TestWriterSaving))
 
     runner = unittest.TextTestRunner(verbosity=2)

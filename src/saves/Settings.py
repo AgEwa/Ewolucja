@@ -46,7 +46,7 @@ class Settings:
 
     @property
     def SAVE(self):
-        return self.SAVE_EVOLUTION_STEP or self.SAVE_GENERATION or self.SAVE_SELECTION or self.SAVE_POPULATION or self.SAVE_GRID or self.SAVE_CONFIG
+        return self.SAVE_EVOLUTION_STEP or self.SAVE_GENERATION or self.SAVE_SELECTION or self.SAVE_POPULATION or self.SAVE_CONFIG
 
     @staticmethod
     def SPACE_DIM(dim):

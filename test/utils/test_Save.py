@@ -6,9 +6,9 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 import config
-from config_src import simulation_settings
+from src.config_src import simulation_settings
 from src.population.Specimen import Specimen
-from src.utils.Save import pickle_pop, write_json_config, process_pop, writer
+from src.utils.Save import pickle_pop, write_json_config, process_pop, writer, save_stats
 from src.utils.utils import initialize_genome
 from src.world.LocationTypes import Coord
 
@@ -28,12 +28,13 @@ def eq_specimen(first, second, msg=None):
     return False
 
 
-class TestPickleSaving(TestCase):
+class TestSingleSaving(TestCase):
 
     def setUp(self):
         if not os.path.exists(config.SIMULATION_SAVES_FOLDER_PATH):
             os.mkdir(config.SIMULATION_SAVES_FOLDER_PATH)
         self.test_filepath = ''
+        self.uid = "test"
 
     def tearDown(self):
         os.remove(self.test_filepath)
@@ -56,11 +57,10 @@ class TestPickleSaving(TestCase):
         specimen_2 = Specimen(2, Coord(2, 2), genome_2)
         pop = [None, specimen_1, specimen_2]
         test_file = "test_pop.pickle"
-        uid = "test"
         # when
-        pickle_pop(pop, test_file, uid)
+        pickle_pop(pop, test_file, self.uid)
         # then
-        self.test_filepath = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}', test_file)
+        self.test_filepath = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self.uid}', test_file)
         with open(self.test_filepath, "rb") as file:
             data = pickle.load(file)
         self.assertIsNotNone(data)
@@ -71,17 +71,29 @@ class TestPickleSaving(TestCase):
     def test_write_json_config(self):
         # given
         test_file = "test_config.json"
-        uid = "test"
-        original_config_dict = {key: value for key, value in vars(simulation_settings).items() if not key.startswith('__')}
+        original_config_dict = {key: value for key, value in vars(simulation_settings).items() if
+                                not key.startswith('__')}
         mock_settings_dict = {"genome_length": 10, "population_size": 5}
         # when
-        write_json_config(original_config_dict.copy(), mock_settings_dict.copy(), test_file, uid)
+        write_json_config(original_config_dict.copy(), mock_settings_dict.copy(), test_file, self.uid)
         # then
-        self.test_filepath = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{uid}', test_file)
+        self.test_filepath = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self.uid}', test_file)
         with open(self.test_filepath, "rb") as file:
             data = json.load(file)
         self.assertDictEqual(original_config_dict, data.get("config"))
         self.assertDictEqual(mock_settings_dict, data.get("parameters"))
+
+    def test_save_stats(self):
+        # given
+
+        expected_dict = {"survived": 0, "selected": 0, "killers count": 0}
+        # when
+        save_stats(self.uid, 0, 0, 0, 0)
+        # then
+        self.test_filepath = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self.uid}', 'stats', f'gen_0.json')
+        with open(self.test_filepath, "rb") as file:
+            data = json.load(file)
+        self.assertDictEqual(expected_dict, data)
 
 
 class TestWriterSaving(TestCase):
@@ -107,7 +119,8 @@ class TestWriterSaving(TestCase):
     def test_saving_pop_for_selected(self):
         # given
         pop = [None]
-        pop.extend([Specimen(i, Coord(i, i), initialize_genome(self.mock_settings.genome_length)) for i in range(1, 11)])
+        pop.extend(
+            [Specimen(i, Coord(i, i), initialize_genome(self.mock_settings.genome_length)) for i in range(1, 11)])
         gen = 0
         selected = [2, 4, 6, 8, 10]
         queue = Queue()
@@ -137,7 +150,8 @@ class TestWriterSaving(TestCase):
     def test_saving_pop_for_all(self):
         # given
         pop = [None]
-        pop.extend([Specimen(i, Coord(i, i), initialize_genome(self.mock_settings.genome_length)) for i in range(1, 11)])
+        pop.extend(
+            [Specimen(i, Coord(i, i), initialize_genome(self.mock_settings.genome_length)) for i in range(1, 11)])
         gen = 0
         queue = Queue()
         writer_process = Process(target=writer, args=(self.test_file, queue, self.uid))
