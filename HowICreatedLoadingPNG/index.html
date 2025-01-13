@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .sq {
+            position: relative;
+            width: 2000px;
+            height: 2000px;
+            background-color: white;
+        }
+
+        .text {
+            display: inline-block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 64px;
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
+    <script src="script.js"></script>
+</head>
+
+<body>
+    <div class="sq">
+        <div class="text">Trying to find animation...</div>
+    </div>
+
+    <div id="previewImage"></div>
+
+    <button id="download">click</button>
+</body>
+
+</html>

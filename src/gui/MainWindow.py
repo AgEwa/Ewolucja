@@ -1,7 +1,9 @@
+import json
 import os
 import uuid
 from enum import Enum, auto
 from multiprocessing import Process
+from pathlib import Path
 
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QAction, QMovie, QImage, QPixmap
@@ -39,20 +41,36 @@ class MainWindow(QMainWindow):
         # every opened window with new plane creator is stored here
         # if not stored, it is immediately closed automatically and if stored in a single variable
         # it overwrites if you try to open the next one, so list it is
-        self._population_file = None
         self._opened_new_plane_creators = []
         # field to store parameters editor window object ref
         self._parameters_editor = None
         # field to store help window object ref
         self._help_window = None
-        # field to store which generation' animation is being played
+
+        # dict of actions, for easier access
+        self._actions = {}
+
+        #
+        self._uid = None
+        # indicator of current simulation id
+        self._simulation_id = QLabel(f'Simulation ID: Simulation not run')
+        # field to store which generation's animation is being played
         self._cur_generation_animation = 0
         # indicator of progress
         self._progress_indicator = QLabel(f'Generation: 1/{Settings.settings.number_of_generations}')
-        # dict of actions, for easier access
-        self._actions = {}
         #
-        self._uid = None
+        self._this_gen_spec_survived = QLabel('data was not found yet.')
+        self._this_gen_spec_selected = QLabel()
+        self._this_gen_spec_killers = QLabel()
+        #
+        self._start_simulation_btn_blocked = False
+
+        # loaded population
+        self._population_file = None
+        #
+        self._plane_save: PlaneSave = None
+        #
+        self.simulation_process: Process = None
 
         # where to place animations
         self._map = QLabel()
@@ -74,9 +92,6 @@ class MainWindow(QMainWindow):
 
         # place container at the center
         self.setCentralWidget(self._container)
-
-        self.simulation_process: Process = None
-        self._plane_save: PlaneSave = None
 
         return
 
@@ -194,7 +209,14 @@ class MainWindow(QMainWindow):
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         #
+        sidebar_layout.addWidget(self._simulation_id)
+        #
         sidebar_layout.addWidget(self._progress_indicator)
+        #
+        sidebar_layout.addWidget(QLabel('This generation:'))
+        sidebar_layout.addWidget(self._this_gen_spec_survived)
+        sidebar_layout.addWidget(self._this_gen_spec_selected)
+        sidebar_layout.addWidget(self._this_gen_spec_killers)
         #
         sidebar_layout.addLayout(mini_layout)
         # add submission buttons
@@ -233,8 +255,13 @@ class MainWindow(QMainWindow):
         """ happens when load population action is triggered """
         try:
             # read selected population save file
-            self._population_file = QFileDialog.getOpenFileName(directory=config.SIMULATION_SAVES_FOLDER_PATH)[0]
-            # example visualisation
+            # ToDo: JUST A FILENAME, not an actual data!!!
+            filename = QFileDialog.getOpenFileName(directory=config.SIMULATION_SAVES_FOLDER_PATH)[0]
+
+            if filename != '':
+                # try to unpickle
+
+                pass
             print(self._population_file)
         except Exception as e:
             print(e)
@@ -312,7 +339,6 @@ class MainWindow(QMainWindow):
         print(self._plane_save)
 
         if self._plane_save.dim != Settings.settings.dim:
-            # ToDo: show some popup
             self._plane_save.dim = None
 
         path = os.path.join(config.PLANE_SAVES_FOLDER_PATH, 'currently_loaded_plane')
@@ -346,23 +372,38 @@ class MainWindow(QMainWindow):
     def update_(self):
         self._progress_indicator.setText(f'Generation: {self._cur_generation_animation + 1}/{Settings.settings.number_of_generations}')
 
+        ## ANIMATION
+
         # path to desired generation animation of current simulation
         path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self._uid}', 'animation', f'generation_{self._cur_generation_animation}.gif')
 
         if os.path.exists(path):
-            animation = QMovie(path)
-            animation.setScaledSize(QSize(config.MAP_DIM, config.MAP_DIM))
-            self._map.setMovie(animation)
-            animation.start()
+            # if current generation is the last one AND animation for this generation exists
+            if self._cur_generation_animation + 1 == Settings.settings.number_of_generations:
+                # then animation completed! we can unblock starting next simulations
+                self._start_simulation_btn_blocked = False
         else:
-            msg = 'Trying to find animation...'
-            loading = QLabel(msg)
-            layout = QHBoxLayout()
-            layout.addWidget(loading)
-            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self._map.setLayout(layout)
+            path = os.path.join(Path(os.path.realpath(__file__)).parent.parent.absolute().__str__(), 'trying_to_load_animation.png')
 
-            pass
+        animation = QMovie(path)
+        animation.setScaledSize(QSize(config.MAP_DIM, config.MAP_DIM))
+        self._map.setMovie(animation)
+        animation.start()
+
+        ## STATISTICS
+
+        path = os.path.join(config.SIMULATION_SAVES_FOLDER_PATH, f'{self._uid}', 'stats', f'gen_{self._cur_generation_animation}.json')
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                x = json.loads(f.read())
+
+            self._this_gen_spec_survived.setText(f'{x['survived']} specimens survived.')
+            self._this_gen_spec_selected.setText(f'{x['selected']} specimens were selected.')
+            self._this_gen_spec_killers.setText(f'{x['killers count']} specimens had killer gene.')
+        else:
+            self._this_gen_spec_survived.setText(f'data was not found yet.')
+            self._this_gen_spec_selected.setText(f'')
+            self._this_gen_spec_killers.setText(f'')
 
         return
 
@@ -398,18 +439,23 @@ class MainWindow(QMainWindow):
     def start_simulation_action_triggered(self) -> None:
         """ happens when start simulation action is triggered """
 
-        self._uid = uuid.uuid4()
+        if not self._start_simulation_btn_blocked:
+            self._start_simulation_btn_blocked = True
 
-        self.simulation_process = Process(target=initialize_simulation, args=(
-            self._plane_save, self._uid, self._population_file))
-        self.simulation_process.start()
+            self._uid = uuid.uuid4()
 
-        msg = 'Trying to find animation...'
-        loading = QLabel(msg)
-        layout = QHBoxLayout()
-        layout.addWidget(loading)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._map.setLayout(layout)
+            self._simulation_id.setText(f'Simulation ID:\n{self._uid}')
+
+            self.simulation_process = Process(target=initialize_simulation, args=(
+                self._plane_save, self._uid, self._population_file))
+            self.simulation_process.start()
+
+            path = os.path.join(Path(os.path.realpath(__file__)).parent.parent.absolute().__str__(), 'trying_to_load_animation.png')
+
+            animation = QMovie(path)
+            animation.setScaledSize(QSize(config.MAP_DIM, config.MAP_DIM))
+            self._map.setMovie(animation)
+            animation.start()
 
         return
 
