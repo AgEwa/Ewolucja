@@ -48,7 +48,6 @@ class ActionType(AutoNumber):
     SET_RESPONSIVENESS = ()  # I
     SET_OSCILLATOR_PERIOD = ()  # I
     SET_LONGPROBE_DIST = ()  # I
-    KILL = ()
     MOVE_X = ()  # W +- X component of movement
     MOVE_Y = ()  # W +- Y component of movement
     MOVE_EAST = ()  # W
@@ -60,6 +59,7 @@ class ActionType(AutoNumber):
     MOVE_LEFT = ()  # W
     MOVE_RIGHT = ()  # W
     MOVE_RANDOM = ()  # W
+    KILL = ()
     EMIT_PHEROMONE = ()  # W
 
 

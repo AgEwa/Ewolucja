@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
-def new_generation_initialize(p_genomes: list) -> None:
+def new_generation_initialize(p_genomes: list) -> int:
     """ initializes new population from given genomes and randomly places them across the grid """
 
     grid.reset()

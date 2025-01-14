@@ -24,9 +24,12 @@ def initialize_simulation(map_save: PlaneSave = None, uid=None, population_filep
     if map_save:
         assert (grid.data == Grid.EMPTY).all()
         assert not grid.food_data
-
-        grid.set_barriers_at_indexes(map_save.get_barrier_positions())
-        grid.set_food_sources_at_indexes(map_save.get_food_positions())
+        barriers = map_save.get_barrier_positions()
+        if barriers:            # so it doesn't fail if there are no barriers/foods marked
+            grid.set_barriers_at_indexes(barriers)
+        foods = map_save.get_food_positions()
+        if foods:
+            grid.set_food_sources_at_indexes(foods)
     else:
         initialize_random_world()
 
@@ -43,7 +46,6 @@ def initialize_simulation(map_save: PlaneSave = None, uid=None, population_filep
 
 def load_existing_population(population_filepath):
     try:
-        print("try pop load")
         with open(population_filepath, "rb") as file:
             pop = pickle.load(file)
         assert isinstance(pop, list)

@@ -11,6 +11,7 @@ from src.utils.utils import bin_to_signed_int
 def decode_connection(hex_gene: str) -> tuple[int, NeuronType, int, NeuronType, float]:
     sensors_num = len(list(SensorType)) if not Settings.settings.disable_pheromones else len(list(SensorType)) - 3
     action_num = len(list(ActionType)) if not Settings.settings.disable_pheromones else len(list(ActionType)) - 1
+    action_num = action_num if Settings.settings.enable_kill else action_num - 1
 
     bin_gene = bin(int(hex_gene, 16))[2:].zfill(32)
 
@@ -21,6 +22,10 @@ def decode_connection(hex_gene: str) -> tuple[int, NeuronType, int, NeuronType, 
     target_type = NeuronType.ACTION if int(bin_gene[8]) == 0 else NeuronType.INNER
     num_targets = action_num if target_type == NeuronType.ACTION else Settings.settings.max_number_of_inner_neurons
     target_id = bin_to_signed_int(bin_gene[9:16]) % num_targets
+
+    if not Settings.settings.enable_kill and not Settings.settings.disable_pheromones:
+        if target_type == NeuronType.ACTION and target_id == ActionType.KILL.value:
+            target_id = ActionType.EMIT_PHEROMONE.value
 
     weight = bin_to_signed_int(bin_gene[16:32]) / 8000  # make it a float from around (-4,4)
 
@@ -70,6 +75,7 @@ class NeuralNetwork:
                     sensor_action.get(target_id).append((source_id, weight))
                     if ActionType(target_id) == ActionType.KILL:
                         self.is_killer = True
+                        print("killer")
 
         self.layers = DirectConnections(sensor_action).add_activation_func(tanh)
         self.layers.next(

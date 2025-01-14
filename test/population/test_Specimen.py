@@ -21,6 +21,7 @@ class TestSpecimen(TestCase):
         self.location = Coord(0, 0)
         self.genome = ["a3f", "b2e", "c1d"]
         self.mock_brain = MagicMock()
+        # TODO: mock_brain.is_killer
         self.specimen = Specimen(self.index, self.location, self.genome.copy())
         mock_neural_network.return_value = self.mock_brain
 

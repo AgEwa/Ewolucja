@@ -32,8 +32,9 @@ class Grid:
         for key in self.food_data:
             self.food_data[key] = random.randint(config.FOOD_PER_SOURCE_MIN, config.FOOD_PER_SOURCE_MAX)
 
-        xs, ys = zip(*self.barriers)
-        self.data[xs, ys] = Grid.BARRIER
+        if self.barriers:
+            xs, ys = zip(*self.barriers)
+            self.data[xs, ys] = Grid.BARRIER
 
         return
 

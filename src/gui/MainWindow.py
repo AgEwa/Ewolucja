@@ -254,15 +254,8 @@ class MainWindow(QMainWindow):
     def load_population_action_triggered(self):
         """ happens when load population action is triggered """
         try:
-            # read selected population save file
-            # ToDo: JUST A FILENAME, not an actual data!!!
-            filename = QFileDialog.getOpenFileName(directory=config.SIMULATION_SAVES_FOLDER_PATH)[0]
-
-            if filename != '':
-                # try to unpickle
-
-                pass
-            print(self._population_file)
+            # save selected population save file
+            self._population_file = QFileDialog.getOpenFileName(directory=config.SIMULATION_SAVES_FOLDER_PATH)[0]
         except Exception as e:
             print(e)
 
