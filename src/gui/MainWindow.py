@@ -443,12 +443,7 @@ class MainWindow(QMainWindow):
                 self._plane_save, self._uid, self._population_file))
             self.simulation_process.start()
 
-            path = os.path.join(Path(os.path.realpath(__file__)).parent.parent.absolute().__str__(), 'trying_to_load_animation.png')
-
-            animation = QMovie(path)
-            animation.setScaledSize(QSize(config.MAP_DIM, config.MAP_DIM))
-            self._map.setMovie(animation)
-            animation.start()
+            self.update_()
 
         return
 
