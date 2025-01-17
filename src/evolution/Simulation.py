@@ -37,7 +37,6 @@ def new_generation_initialize(p_genomes: list) -> int:
         grid.data[selected[i][0], selected[i][1]] = i + 1
         # set max energy
         population[i + 1].max_energy = p_genomes[i][0]
-        population[i + 1].energy = population[i + 1].max_energy
 
     return killers_count
 
@@ -172,6 +171,9 @@ def population_step() -> int:
 
             # let it take some actions
             population[specimen_idx].live()
+
+            if not population[specimen_idx].alive:
+                count_dead += 1
         else:
             count_dead += 1
     return count_dead

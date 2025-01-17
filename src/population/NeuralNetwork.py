@@ -75,7 +75,6 @@ class NeuralNetwork:
                     sensor_action.get(target_id).append((source_id, weight))
                     if ActionType(target_id) == ActionType.KILL:
                         self.is_killer = True
-                        print("killer")
 
         self.layers = DirectConnections(sensor_action).add_activation_func(tanh)
         self.layers.next(

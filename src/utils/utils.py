@@ -81,7 +81,7 @@ def drain_kill_set(p_set: set):
         specimen = population[idx]
         specimen.alive = False
         specimen.energy = 0
-        logging.info("killed")
+        logging.debug("killed")
     p_set.clear()
 
 

@@ -184,7 +184,7 @@ class MainWindow(QMainWindow):
         switch_prev_gif_btn.clicked.connect(self.prev_gif_btn_clicked)
 
         # repeat current generation's animation
-        repeat_gif_btn = QPushButton('Rep')
+        repeat_gif_btn = QPushButton('Repeat')
         # connect method that should be triggered
         repeat_gif_btn.clicked.connect(self.repeat_gif_btn_clicked)
 
