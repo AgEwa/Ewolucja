@@ -69,12 +69,12 @@ def initialize_world():
     # list of all indexes available in the grid
     all_places = [(row, col) for row in range(grid.size) for col in range(grid.size)]
     # select indexes for barriers and update grid object
-    bar_placement = random.sample(all_places, config.BARRIERS_NUMBER)
+    bar_placement = random.sample(all_places, Settings.settings.BARRIERS_NUMBER)
     grid.set_barriers_at_indexes(bar_placement)
     # list of available indexes left
     places_left = list(set(all_places).difference(bar_placement))
     # select indexes for food sources and update grid object
-    food_placement = random.sample(places_left, config.FOOD_SOURCES_NUMBER)
+    food_placement = random.sample(places_left, Settings.settings.FOOD_SOURCES_NUMBER)
     grid.set_food_sources_at_indexes(food_placement)
 
 

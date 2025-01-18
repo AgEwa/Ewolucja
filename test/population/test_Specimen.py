@@ -41,12 +41,12 @@ class TestSpecimen(TestCase):
         self.specimen.eat()
         # then
         if initial_max_energy < config.MAX_ENERGY_LEVEL_SUPREMUM:
-            self.assertEqual(self.specimen.max_energy, initial_max_energy + config.FOOD_INCREASED_MAX_LEVEL)
+            self.assertEqual(self.specimen.max_energy, initial_max_energy + Settings.settings.FOOD_INCREASED_MAX_LEVEL)
         self.assertLessEqual(self.specimen.energy, self.specimen.max_energy)
-        if initial_energy + config.FOOD_ADDED_ENERGY > initial_max_energy + config.FOOD_INCREASED_MAX_LEVEL:
-            self.assertEqual(self.specimen.energy, initial_max_energy + config.FOOD_INCREASED_MAX_LEVEL)
+        if initial_energy + Settings.settings.food_added_energy > initial_max_energy + Settings.settings.FOOD_INCREASED_MAX_LEVEL:
+            self.assertEqual(self.specimen.energy, initial_max_energy + Settings.settings.FOOD_INCREASED_MAX_LEVEL)
         else:
-            self.assertEqual(self.specimen.energy, initial_energy + config.FOOD_ADDED_ENERGY)
+            self.assertEqual(self.specimen.energy, initial_energy + Settings.settings.food_added_energy)
 
     def test_act_for_non_move_actions(self):
         # given
@@ -92,7 +92,7 @@ class TestSpecimen(TestCase):
         mock_probability.return_value = True
         mock_choice.return_value = -1
         mock_direction_as_coord.return_value = Coord(1, 0)
-        self.specimen.energy = config.ENERGY_PER_ONE_UNIT_OF_MOVE + 1
+        self.specimen.energy = Settings.settings.energy_per_move + 1
         value = 0.6
         p_actions = {
             ActionType.MOVE_X: value,

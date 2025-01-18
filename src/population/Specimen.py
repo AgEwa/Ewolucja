@@ -11,11 +11,6 @@ from src.world.LocationTypes import Direction, Conversions, Coord
 
 max_long_probe_dist = 32
 
-
-def get_max_energy_level_from_genome(hex_gene: str) -> int:
-    return int(hex_gene, 16) % Settings.settings.max_energy_level_supremum
-
-
 move_actions = {
     ActionType.MOVE_X,
     ActionType.MOVE_Y,
@@ -63,21 +58,21 @@ class Specimen:
         return self
 
     def can_move(self):
-        return self.energy >= config.ENERGY_PER_ONE_UNIT_OF_MOVE
+        return self.energy >= Settings.settings.energy_per_move
 
     def use_energy(self, value: float):
         self.energy -= value
 
-        if self.energy < min(config.ENERGY_PER_ONE_UNIT_OF_MOVE, Settings.settings.ENERGY_DECREASE_IN_TIME):
+        if self.energy < min(Settings.settings.energy_per_move, Settings.settings.ENERGY_DECREASE_IN_TIME):
             self.energy = 0
             self.alive = False
 
     def eat(self):
         # try to increase max energy level
         if self.max_energy < Settings.settings.max_energy_level_supremum:
-            self.max_energy += config.FOOD_INCREASED_MAX_LEVEL
+            self.max_energy += Settings.settings.FOOD_INCREASED_MAX_LEVEL
         # update energy
-        self.energy += config.FOOD_ADDED_ENERGY
+        self.energy += Settings.settings.food_added_energy
         # if it ate more than allowed, then trim
         if self.energy > self.max_energy:
             self.energy = self.max_energy
@@ -154,7 +149,7 @@ class Specimen:
 
     def _move(self, p_move):
         """Accumulates movements from `p_move` into a path and queues the movement"""
-        if self.energy < config.ENERGY_PER_ONE_UNIT_OF_MOVE:
+        if self.energy < Settings.settings.energy_per_move:
             return
 
         # specimen's last movement as x and y direction

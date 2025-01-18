@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from math import ceil
 from typing import ClassVar
 
 import config
@@ -34,6 +35,12 @@ class Settings:
 
     SAVE_CONFIG: bool = config.SAVE_CONFIG
 
+    min_food_per_source: int = config.FOOD_PER_SOURCE_MIN
+    max_food_per_source: int = config.FOOD_PER_SOURCE_MAX
+
+    food_added_energy: int = config.FOOD_ADDED_ENERGY
+    energy_per_move: int = config.ENERGY_PER_ONE_UNIT_OF_MOVE
+
     settings: ClassVar['Settings'] = None
 
     @property
@@ -47,6 +54,18 @@ class Settings:
     @property
     def SAVE(self):
         return self.SAVE_EVOLUTION_STEP or self.SAVE_GENERATION or self.SAVE_SELECTION or self.SAVE_POPULATION or self.SAVE_CONFIG
+
+    @property
+    def FOOD_INCREASED_MAX_LEVEL(self):
+        return self.food_added_energy / 10
+
+    @property
+    def BARRIERS_NUMBER(self):
+        return ceil((self.dim ^ 2) * 0.05)
+
+    @property
+    def FOOD_SOURCES_NUMBER(self):
+        return ceil((self.dim ^ 2) * 0.1)
 
     @staticmethod
     def SPACE_DIM(dim):

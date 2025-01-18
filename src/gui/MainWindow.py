@@ -437,11 +437,12 @@ class MainWindow(QMainWindow):
 
             self._uid = uuid.uuid4()
 
-            self._simulation_id.setText(f'Simulation ID:\n{self._uid}')
+            self._simulation_id.setText(f'Simulation ID: \n{self._uid}')
 
             self.simulation_process = Process(target=initialize_simulation, args=(
                 self._plane_save, self._uid, self._population_file))
             self.simulation_process.start()
+            self._cur_generation_animation = 0
 
             self.update_()
 

@@ -1,11 +1,11 @@
 import unittest
 
 from evolution.test_Operators import TestOperators
-from utils.test_Save import TestSingleSaving, TestWriterSaving
 from population.test_Layer import *
 from population.test_NeuralNetwork import TestNeuralNetwork, TestDecodeConnection
 from population.test_Sensor import TestSensor
 from population.test_Specimen import TestSpecimen
+from utils.test_Save import TestSingleSaving, TestWriterSaving
 from utils.test_utils import TestUtils
 from world.test_Grid import TestGrid
 from world.test_Pheromones import TestPheromones

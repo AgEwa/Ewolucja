@@ -31,12 +31,10 @@ def new_generation_initialize(p_genomes: list) -> int:
     for i in range(Settings.settings.population_size):
         # create specimen and add it to population. Save its index (in population list), location (in grid) and
         # randomly generated genome
-        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), p_genomes[i][1:]))
+        population.append(Specimen(i + 1, Coord(selected[i, 0].item(), selected[i, 1].item()), p_genomes[i]))
         killers_count += 1 if population[-1].is_killer else 0
         # place index (reference to population list) on grid
         grid.data[selected[i][0], selected[i][1]] = i + 1
-        # set max energy
-        population[i + 1].max_energy = p_genomes[i][0]
 
     return killers_count
 
@@ -62,9 +60,6 @@ def simulation(uid) -> None:
     # process' lists to join
     plot_processes = []
     gif_processes = []
-    # population of specimens
-    # initialize_world()
-    # initialize_population()
 
     if Settings.settings.SAVE:
         save_helper = SavingHelper(uid)

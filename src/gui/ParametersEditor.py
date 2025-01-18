@@ -1,3 +1,5 @@
+from math import ceil
+
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QDialogButtonBox, QFrame, QGridLayout, QSpinBox, QLabel, \
     QDoubleSpinBox, QCheckBox
 
@@ -81,6 +83,36 @@ class ParametersEditor(QMainWindow):
         self.start_energy.setMaximum(Settings.settings.max_energy_level_supremum)
         self.start_energy.setValue(Settings.settings.entry_max_energy_level)
 
+        # input responsible for min food per source
+        self.min_food = QSpinBox()
+        self.min_food.setMinimum(1)
+        self.min_food.setMaximum(100)
+        self.min_food.setValue(Settings.settings.min_food_per_source)
+
+        # input responsible for max food per source
+        self.max_food = QSpinBox()
+        self.max_food.setMinimum(1)
+        self.max_food.setMaximum(100)
+        self.max_food.setValue(Settings.settings.max_food_per_source)
+        # update limits per change
+        self.min_food.valueChanged.connect(lambda x: self.max_food.setMinimum(x))
+        self.max_food.valueChanged.connect(lambda x: self.min_food.setMaximum(x))
+
+        # input responsible for food_added_energy
+        self.food_added_energy = QDoubleSpinBox()
+        self.food_added_energy.setMinimum(1)
+        self.food_added_energy.setMaximum(10)
+        self.food_added_energy.setSingleStep(0.5)
+        self.food_added_energy.setValue(Settings.settings.food_added_energy)
+
+        # input responsible for energy_per_move
+        self.energy_per_move = QDoubleSpinBox()
+        self.energy_per_move.setMinimum(0.01)
+        self.food_added_energy.valueChanged.connect(lambda x: self.energy_per_move.setMaximum(x))
+        self.energy_per_move.setMaximum(10)
+        self.energy_per_move.setSingleStep(0.1)
+        self.energy_per_move.setValue(Settings.settings.energy_per_move)
+
         # input responsible for changing grid dimension
         self.grid_dim = QSpinBox()
         self.grid_dim.setMinimum(10)
@@ -127,80 +159,109 @@ class ParametersEditor(QMainWindow):
 
     def initialise(self):
         self.setWindowTitle('Parameters editor')
-        self._container.setFixedSize(config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
+        self._container.setFixedSize(ceil(config.WINDOW_WIDTH * 1.1), ceil(config.WINDOW_HEIGHT * 1.1))
 
         return
 
     def set_up_parameters(self):
         parameters_layout = QGridLayout()
 
+        # title row 0
+        sim_title = '<span style="color:#6c9286; font-size: 15px;"><b>Population</b></span>'
+        parameters_layout.addWidget(QLabel(sim_title), 0, 0, 1, 7)
+
         # spaces
-        parameters_layout.addWidget(QFrame(width=30), 0, 2)
-        parameters_layout.addWidget(QFrame(width=30), 0, 5)
-
-        # row 0
-        parameters_layout.addWidget(QLabel('Population size:'), 0, 0)
-        parameters_layout.addWidget(self.population_size, 0, 1)
-
-        parameters_layout.addWidget(QLabel('Number of generations:'), 0, 3)
-        parameters_layout.addWidget(self.num_generations, 0, 4)
-
-        parameters_layout.addWidget(QLabel('Number of steps per generation:'), 0, 6)
-        parameters_layout.addWidget(self.num_steps, 0, 7)
+        parameters_layout.addWidget(QFrame(width=5), 1, 2)
+        parameters_layout.addWidget(QFrame(width=5), 1, 5)
 
         # row 1
-        parameters_layout.addWidget(QLabel('Genome length:'), 1, 0)
-        parameters_layout.addWidget(self.genome_length, 1, 1)
+        parameters_layout.addWidget(QLabel('Population size:'), 1, 0)
+        parameters_layout.addWidget(self.population_size, 1, 1)
 
-        parameters_layout.addWidget(QLabel('Number of inner neurons:'), 1, 3)
-        parameters_layout.addWidget(self.num_inner_neurons, 1, 4)
+        parameters_layout.addWidget(QLabel('Number of generations:'), 1, 3)
+        parameters_layout.addWidget(self.num_generations, 1, 4)
 
-        parameters_layout.addWidget(QLabel('Disable pheromones:'), 1, 6)
-        parameters_layout.addWidget(self.disable_pheromones, 1, 7)
+        parameters_layout.addWidget(QLabel('Number of steps per generation:'), 1, 6)
+        parameters_layout.addWidget(self.num_steps, 1, 7)
 
-        # row 2
-        parameters_layout.addWidget(QLabel('Mutation probability:'), 2, 0)
-        parameters_layout.addWidget(self.prob_mutation, 2, 1)
-
-        parameters_layout.addWidget(QLabel('Number of genes to be mutated:'), 2, 3)
-        parameters_layout.addWidget(self.mutatable_genes_num, 2, 4)
-
-        parameters_layout.addWidget(QLabel('Number of bits in gene to be mutated:'), 2, 6)
-        parameters_layout.addWidget(self.mutatable_bits_num, 2, 7)
-
+        # title row 2
+        gen_title = '<span style="color:#6c9286; font-size: 15px;"><b>Genome</b></span>'
+        parameters_layout.addWidget(QLabel(gen_title), 2, 0, 1, 7)
         # row 3
-        parameters_layout.addWidget(QLabel('Starting energy level:'), 3, 0)
-        parameters_layout.addWidget(self.start_energy, 3, 1)
+        parameters_layout.addWidget(QLabel('Genome length:'), 3, 0)
+        parameters_layout.addWidget(self.genome_length, 3, 1)
 
-        parameters_layout.addWidget(QLabel('Supremum energy level:'), 3, 3)
-        parameters_layout.addWidget(self.max_energy, 3, 4)
+        parameters_layout.addWidget(QLabel('Number of inner neurons:'), 3, 3)
+        parameters_layout.addWidget(self.num_inner_neurons, 3, 4)
 
-        parameters_layout.addWidget(QLabel('Grid dimension:'), 3, 6)
-        parameters_layout.addWidget(self.grid_dim, 3, 7)
-
+        parameters_layout.addWidget(QLabel('Disable pheromones:'), 3, 6)
+        parameters_layout.addWidget(self.disable_pheromones, 3, 7)
         # row 4
-        parameters_layout.addWidget(QLabel('Save animation:'), 4, 0)
-        parameters_layout.addWidget(self.save_animation, 4, 1)
+        parameters_layout.addWidget(QLabel('Enable kill action:'), 4, 0)
+        parameters_layout.addWidget(self.enable_kill, 4, 1)
 
-        parameters_layout.addWidget(QLabel('Save evolution step:'), 4, 3)
-        parameters_layout.addWidget(self.save_evolution_step, 4, 4)
-
-        parameters_layout.addWidget(QLabel('Save generation:'), 4, 6)
-        parameters_layout.addWidget(self.save_generation, 4, 7)
-
-        # row 5
-        parameters_layout.addWidget(QLabel('Save selection:'), 5, 0)
-        parameters_layout.addWidget(self.save_selection, 5, 1)
-
-        parameters_layout.addWidget(QLabel('Save population:'), 5, 3)
-        parameters_layout.addWidget(self.save_population, 5, 4)
-
-        parameters_layout.addWidget(QLabel('Save config:'), 5, 6)
-        parameters_layout.addWidget(self.save_config, 5, 7)
-
+        # title row 5
+        mut_title = '<span style="color:#6c9286; font-size: 15px;"><b>Mutation</b></span>'
+        parameters_layout.addWidget(QLabel(mut_title), 5, 0, 1, 7)
         # row 6
-        parameters_layout.addWidget(QLabel('Enable kill action:'), 6, 0)
-        parameters_layout.addWidget(self.enable_kill, 6, 1)
+        parameters_layout.addWidget(QLabel('Mutation probability:'), 6, 0)
+        parameters_layout.addWidget(self.prob_mutation, 6, 1)
+
+        parameters_layout.addWidget(QLabel('Number of genes to be mutated:'), 6, 3)
+        parameters_layout.addWidget(self.mutatable_genes_num, 6, 4)
+
+        parameters_layout.addWidget(QLabel('Number of bits in gene to be mutated:'), 6, 6)
+        parameters_layout.addWidget(self.mutatable_bits_num, 6, 7)
+
+        # title row 7
+        en_title = '<span style="color:#6c9286; font-size: 15px;"><b>Energy</b></span>'
+        parameters_layout.addWidget(QLabel(en_title), 7, 0, 1, 7)
+        # row 8
+        parameters_layout.addWidget(QLabel('Starting energy level:'), 8, 0)
+        parameters_layout.addWidget(self.start_energy, 8, 1)
+
+        parameters_layout.addWidget(QLabel('Supremum energy level:'), 8, 3)
+        parameters_layout.addWidget(self.max_energy, 8, 4)
+
+        parameters_layout.addWidget(QLabel('Energy per food:'), 8, 6)
+        parameters_layout.addWidget(self.food_added_energy, 8, 7)
+        # row 9
+        parameters_layout.addWidget(QLabel('Energy per unit of move:'), 9, 0)
+        parameters_layout.addWidget(self.energy_per_move, 9, 1)
+
+        # title row 10
+        w_title = '<span style="color:#6c9286; font-size: 15px;"><b>World</b></span>'
+        parameters_layout.addWidget(QLabel(w_title), 10, 0, 1, 7)
+        # row 11
+        parameters_layout.addWidget(QLabel('Grid dimension:'), 11, 0)
+        parameters_layout.addWidget(self.grid_dim, 11, 1)
+
+        parameters_layout.addWidget(QLabel('Range of food amount per source:'), 11, 3)
+        parameters_layout.addWidget(self.min_food, 11, 4)
+        parameters_layout.addWidget(self.max_food, 11, 5)
+
+        # title row 12
+        save_title = '<span style="color:#6c9286; font-size: 15px;"><b>Data Capture</b></span>'
+        parameters_layout.addWidget(QLabel(save_title), 12, 0, 1, 7)
+        # row 13
+        parameters_layout.addWidget(QLabel('Save animation:'), 13, 0)
+        parameters_layout.addWidget(self.save_animation, 13, 1)
+
+        parameters_layout.addWidget(QLabel('Save evolution step:'), 13, 3)
+        parameters_layout.addWidget(self.save_evolution_step, 13, 4)
+
+        parameters_layout.addWidget(QLabel('Save generation:'), 13, 6)
+        parameters_layout.addWidget(self.save_generation, 13, 7)
+
+        # row 14
+        parameters_layout.addWidget(QLabel('Save selection:'), 14, 0)
+        parameters_layout.addWidget(self.save_selection, 14, 1)
+
+        parameters_layout.addWidget(QLabel('Save population:'), 14, 3)
+        parameters_layout.addWidget(self.save_population, 14, 4)
+
+        parameters_layout.addWidget(QLabel('Save config:'), 14, 6)
+        parameters_layout.addWidget(self.save_config, 14, 7)
 
         self._parameters.setLayout(parameters_layout)
 

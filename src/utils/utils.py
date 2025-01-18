@@ -4,6 +4,7 @@ from math import tanh, sin, cos
 
 import config
 from src.external import grid, population
+from src.saves.Settings import Settings
 from src.world.LocationTypes import Conversions, Coord, Direction
 
 
@@ -46,7 +47,7 @@ def squeeze(p_x: float) -> float:
 
 def response_curve(p_r: float) -> float:
     k = config.RESPONSIVENESS_CURVE_K_FACTOR
-    return 2*(p_r - 2) ** (-2 * k) - 2 ** (-2 * k) * (1 - p_r)
+    return 2 * (p_r - 2) ** (-2 * k) - 2 ** (-2 * k) * (1 - p_r)
 
 
 # for fun
@@ -123,7 +124,7 @@ def drain_move_queue(p_queue: list[tuple]):
                     if grid.is_food_at(new_location):
                         specimen.eat()
                         grid.food_eaten_at(new_location)  # decreases amount of food at food source
-                    specimen.use_energy(config.ENERGY_PER_ONE_UNIT_OF_MOVE)
+                    specimen.use_energy(Settings.settings.energy_per_move)
 
             grid.data[specimen.location.x, specimen.location.y] = 0
             grid.data[new_location.x, new_location.y] = specimen.index

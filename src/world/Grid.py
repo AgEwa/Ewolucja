@@ -30,7 +30,7 @@ class Grid:
     def reset(self):
         self.data = np.zeros((self.size, self.size), dtype=np.int16)
         for key in self.food_data:
-            self.food_data[key] = random.randint(config.FOOD_PER_SOURCE_MIN, config.FOOD_PER_SOURCE_MAX)
+            self.food_data[key] = random.randint(Settings.settings.min_food_per_source, Settings.settings.max_food_per_source)
 
         if self.barriers:
             xs, ys = zip(*self.barriers)
@@ -56,8 +56,7 @@ class Grid:
         xs, ys = zip(*indexes)
         assert self.in_bounds_xy(max(xs), max(ys)) and self.in_bounds_xy(min(xs), min(ys))
         assert (self.data[xs, ys] == Grid.EMPTY).all()
-        # self.data[xs, ys] = Grid.FOOD_SOURCE
-        self.food_data = {idx: random.randint(config.FOOD_PER_SOURCE_MIN, config.FOOD_PER_SOURCE_MAX) for idx in
+        self.food_data = {idx: random.randint(Settings.settings.min_food_per_source, Settings.settings.max_food_per_source) for idx in
                           indexes}
 
     def food_eaten_at(self, loc: Coord):
@@ -82,17 +81,6 @@ class Grid:
 
     def is_food_at(self, loc: Coord):
         return (loc.x, loc.y) in self.food_data and self.food_data.get((loc.x, loc.y)) > 0
-
-    # def find_empty(self) -> Coord:
-    #     # all indexes where grid is zero
-    #     potentials = np.argwhere(self.data == Grid.EMPTY)
-    #
-    #     # select one such index randomly
-    #     result = potentials[np.random.choice(potentials.shape[0])]
-    #
-    #     return Coord(result[0].item(), result[1].item())
-
-    # methods with x,y params to not force creation of Coord objects:
 
     def food_eaten_at_xy(self, x, y):
         idx = (x, y)

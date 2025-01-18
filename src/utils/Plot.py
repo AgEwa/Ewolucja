@@ -21,7 +21,7 @@ SPECIMEN_COLOR = {
     False: "grey"
 }
 food_cmap = plt.cm.Greens
-norm = mcolors.Normalize(vmin=0, vmax=config.FOOD_PER_SOURCE_MAX)
+
 
 
 def visualize_neural_network(graph: nx.MultiDiGraph):
@@ -46,6 +46,7 @@ def visualize_neural_network(graph: nx.MultiDiGraph):
 def plot_world(barriers, food_data, pop, save_path_name: str):
     # 'cause is used in process, Settings object needs to be read again
     Settings.read()
+    norm = mcolors.Normalize(vmin=0, vmax=Settings.settings.max_food_per_source)
 
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.clear()
@@ -80,11 +81,6 @@ def plot_world(barriers, food_data, pop, save_path_name: str):
 def plot_plane(barriers, food_data, save_path_name: str):
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.clear()
-    # ax.set_xticks(np.arange(-0.5, Settings.settings.dim, 1))
-    # ax.set_yticks(np.arange(-0.5, Settings.settings.dim, 1))
-    # ax.set_xticklabels([])
-    # ax.set_yticklabels([])
-    # ax.grid(color='gray', linestyle='-', linewidth=0.5)
     ax.set_xlim(-0.5, Settings.settings.dim - 0.5)
     ax.set_ylim(-0.5, Settings.settings.dim - 0.5)
     ax.margins(0)

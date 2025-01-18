@@ -12,8 +12,7 @@ from src.utils.utils import probability
 
 def mutate(p_specimen: Specimen) -> None:
     """ makes given specimen mutate """
-    if len(p_specimen.genome) != Settings.settings.genome_length:
-        assert len(p_specimen.genome) == Settings.settings.genome_length
+    assert len(p_specimen.genome) == Settings.settings.genome_length
 
     genome = p_specimen.genome.copy()
 
@@ -76,17 +75,10 @@ def crossover_get_genomes(p_parent_a: Specimen, p_parent_b: Specimen) -> tuple[l
     b_2_b_genes = [p_parent_b.genome[gene_idx] for gene_idx in range(Settings.settings.genome_length) if
                    gene_idx not in b_2_a_genes_idx]
 
-    key = probability(0.5)
-    child_a_max_energy_value = p_parent_a.max_energy if key else p_parent_b.max_energy
-    child_b_max_energy_value = p_parent_a.max_energy if not key else p_parent_b.max_energy
-
     child_a_genome = a_2_a_genes + b_2_a_genes
     child_b_genome = a_2_b_genes + b_2_b_genes
     assert len(child_a_genome) == Settings.settings.genome_length
     assert len(child_b_genome) == Settings.settings.genome_length
-
-    child_a_genome = [child_a_max_energy_value] + child_a_genome
-    child_b_genome = [child_b_max_energy_value] + child_b_genome
 
     return child_a_genome, child_b_genome
 
