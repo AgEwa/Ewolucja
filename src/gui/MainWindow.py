@@ -331,12 +331,12 @@ class MainWindow(QMainWindow):
         # example visualisation
         print(self._plane_save)
 
-        if self._plane_save.dim != Settings.settings.dim:
-            self._plane_save.dim = None
-
         path = os.path.join(config.PLANE_SAVES_FOLDER_PATH, 'currently_loaded_plane')
 
         try:
+            if self._plane_save.dim != Settings.settings.dim:
+                self._plane_save.dim = None
+
             if self._plane_save.dim is not None:
                 plot_plane(self._plane_save.get_barrier_positions(), self._plane_save.get_food_positions(), path)
             else:

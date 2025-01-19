@@ -310,6 +310,10 @@ class ParametersEditor(QMainWindow):
         Settings.settings.SAVE_POPULATION = self.save_population.isChecked()
         Settings.settings.enable_kill = self.enable_kill.isChecked()
         Settings.settings.SAVE_CONFIG = self.save_config.isChecked()
+        Settings.settings.food_added_energy = self.food_added_energy.value()
+        Settings.settings.energy_per_move = self.energy_per_move.value()
+        Settings.settings.min_food_per_source = self.min_food.value()
+        Settings.settings.max_food_per_source = self.max_food.value()
 
         Settings.write()
 
