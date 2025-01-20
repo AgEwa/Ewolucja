@@ -4,22 +4,22 @@ from unittest.mock import patch, MagicMock, Mock
 import config
 from src.population.SensorActionEnums import ActionType
 from src.population.Specimen import Specimen
+from src.saves.Settings import Settings
 from src.utils.utils import squeeze, response_curve
 from src.world.LocationTypes import Coord, Direction, Compass
 
 
 class TestSpecimen(TestCase):
 
-    @patch('src.population.Specimen.NeuralNetwork', autospec=True)
+    @patch('src.population.NeuralNetwork.NeuralNetwork', autospec=True)
     def setUp(self, mock_neural_network):
-        mock_settings = Mock()
-        mock_settings.entry_max_energy_level = 10
-        mock_settings.max_energy_level_supremum = 12
-        settings_patch = patch('src.population.Specimen.Settings.settings', mock_settings)
-        settings_patch.start()
+        Settings.read()
+        Settings.settings.entry_max_energy_level = 10
+        Settings.settings.max_energy_level_supremum = 12
+
         self.index = 1
         self.location = Coord(0, 0)
-        self.genome = ["a3f", "b2e", "c1d"]
+        self.genome = ["a3f00000", "b2e00000", "c1d00000"]
         self.mock_brain = MagicMock()
         # TODO: mock_brain.is_killer
         self.specimen = Specimen(self.index, self.location, self.genome.copy())

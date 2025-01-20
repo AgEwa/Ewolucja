@@ -5,6 +5,7 @@ from population.test_Layer import *
 from population.test_NeuralNetwork import TestNeuralNetwork, TestDecodeConnection
 from population.test_Sensor import TestSensor
 from population.test_Specimen import TestSpecimen
+from src.saves.SavesStarter import SavesStarter
 from utils.test_Save import TestSingleSaving, TestWriterSaving
 from utils.test_utils import TestUtils
 from world.test_Grid import TestGrid
@@ -12,6 +13,8 @@ from world.test_Pheromones import TestPheromones
 
 
 def run_all_tests():
+    SavesStarter.init()
+
     suite = unittest.TestSuite()
     loader = unittest.TestLoader()
 
