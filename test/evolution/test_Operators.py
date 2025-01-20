@@ -67,14 +67,11 @@ class TestOperators(TestCase):
         child_a, child_b = crossover_get_genomes(parent_a, parent_b)
 
         # then
-        self.assertEqual(len(child_a), self.mock_settings.genome_length + 1)
-        self.assertEqual(len(child_b), self.mock_settings.genome_length + 1)
-        # check children's max energy
-        self.assertTrue(child_a[0] == parent_a.max_energy or child_a[0] == parent_b.max_energy)
-        self.assertTrue(child_b[0] == parent_a.max_energy or child_b[0] == parent_b.max_energy)
+        self.assertEqual(len(child_a), self.mock_settings.genome_length)
+        self.assertEqual(len(child_b), self.mock_settings.genome_length)
         # check if children are combinations of parents
-        self.assertTrue(all(gene in parent_a.genome + parent_b.genome for gene in child_a[1:]))
-        self.assertTrue(all(gene in parent_a.genome + parent_b.genome for gene in child_b[1:]))
+        self.assertTrue(all(gene in parent_a.genome + parent_b.genome for gene in child_a))
+        self.assertTrue(all(gene in parent_a.genome + parent_b.genome for gene in child_b))
 
     def test_reproduce(self):
         # given
@@ -89,7 +86,7 @@ class TestOperators(TestCase):
         self.assertGreaterEqual(len(genomes), self.mock_settings.population_size)
         self.assertLessEqual(len(genomes), self.mock_settings.population_size + 1)
         for genome in genomes:
-            self.assertEqual(len(genome), self.mock_settings.genome_length + 1)
+            self.assertEqual(len(genome), self.mock_settings.genome_length)
 
     def test_evaluate_and_select(self):
         # when
