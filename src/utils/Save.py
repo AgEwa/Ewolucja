@@ -77,7 +77,8 @@ def process_pop(gen, pop, selected, queue):
                 "max_energy": specimen.max_energy,
                 "adaptation_value": specimen.energy * 0.25 + specimen.max_energy * 0.75,
                 "genome": specimen.genome,
-                "alive": specimen.alive
+                "alive": specimen.alive,
+                "is_killer": specimen.is_killer
             }
 
     logging.debug(f"Process pop wrote: {to_write}")
